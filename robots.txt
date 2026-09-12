@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /outbox
+
+Sitemap: /sitemap.xml

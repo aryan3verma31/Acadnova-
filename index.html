@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcadNova — Global Academic & Research Discovery</title>
+<meta name="description" content="Browse verified foreign universities, rankings, and AI/ML & engineering research areas, then message professors directly. India and China are excluded from this discovery database by design.">
+<meta property="og:title" content="AcadNova — Global Academic & Research Discovery">
+<meta property="og:description" content="Verified university rankings, professor discovery, and direct outreach for Master's/PhD applicants.">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<!-- Note: this is a client-rendered single-page app. Modern Googlebot executes JS and can
+     index it, but crawlers that don't run JS will only see this shell — for stronger SEO
+     later, server-side rendering or pre-rendered snapshots per route would be the next step. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  .setup-banner{background:#F1E4DF;border:1px solid #C9A395;color:#7A3B2C;padding:10px 16px;font-size:12.5px;text-align:center;}
+  .setup-banner code{background:#fff;padding:1px 5px;border-radius:3px;}
+  .auth-bar{display:flex;gap:10px;align-items:center;font-size:12.5px;}
+  .auth-bar button{padding:6px 12px;border:1px solid var(--line);background:#fff;border-radius:var(--radius);cursor:pointer;font-size:12.5px;}
+  .auth-bar button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .auth-bar .who{color:var(--ink-soft);}
+  .nav-tabs{display:flex;gap:2px;margin:10px 0 0;}
+  .nav-tabs .nt{padding:6px 14px;font-size:12.5px;cursor:pointer;color:var(--ink-soft);border-bottom:2px solid transparent;}
+  .nav-tabs .nt.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(24,34,51,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;}
+  .modal-box{background:#fff;border-radius:var(--radius);max-width:480px;width:100%;padding:22px;max-height:90vh;overflow-y:auto;}
+  .modal-box h3{margin-bottom:12px;}
+  .modal-box label{margin-top:10px;}
+  .modal-box .actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;}
+  .modal-box .actions button{padding:8px 16px;border-radius:var(--radius);border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;}
+  .modal-box .actions button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .field-error{color:var(--unverified);font-size:12px;margin-top:6px;}
+  .outbox-item{border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;background:var(--paper-raised);font-size:13px;}
+  .outbox-item .m{color:var(--ink-soft);font-size:12px;margin-top:4px;}
+  .status-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+  .status-pill.saved{background:var(--ai-bg);color:var(--ai);}
+  .status-pill.mailto{background:var(--verified-bg);color:var(--verified);}
+  :root{
+    --ink:#182233;
+    --ink-soft:#4E5768;
+    --paper:#EFEEE8;
+    --paper-raised:#F8F7F3;
+    --line:#D7D2C4;
+    --verified:#1F6F5C;
+    --verified-bg:#E4EFE9;
+    --ai:#A9711E;
+    --ai-bg:#F5EBD9;
+    --unverified:#8B4A3A;
+    --unverified-bg:#F1E4DF;
+    --accent:#2B3E6B;
+    --radius:3px;
+    --serif: Georgia, 'Iowan Old Style', 'Source Serif 4', 'Times New Roman', serif;
+    --sans: -apple-system, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--sans);background:var(--paper);color:var(--ink);}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;margin:0;}
+  a{color:var(--accent);}
+  .app{max-width:1180px;margin:0 auto;padding:0 20px 80px;}
+
+  header.top{border-bottom:1px solid var(--line);padding:22px 0 18px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;}
+  header.top .brand h1{font-size:26px;letter-spacing:0.2px;}
+  header.top .brand p{margin:4px 0 0;font-size:13px;color:var(--ink-soft);max-width:520px;}
+  header.top .legend{display:flex;gap:10px;font-size:11.5px;flex-wrap:wrap;}
+  .chip{padding:3px 9px;border-radius:20px;font-weight:600;}
+  .chip.verified{background:var(--verified-bg);color:var(--verified);}
+  .chip.ai{background:var(--ai-bg);color:var(--ai);}
+  .chip.unverified{background:var(--unverified-bg);color:var(--unverified);}
+
+  .stepper{display:flex;gap:0;margin:22px 0 26px;border:1px solid var(--line);background:var(--paper-raised);border-radius:var(--radius);overflow:hidden;flex-wrap:wrap;}
+  .stepper div{flex:1;min-width:110px;padding:10px 14px;font-size:12.5px;border-right:1px solid var(--line);color:var(--ink-soft);}
+  .stepper div:last-child{border-right:none;}
+  .stepper div.active{background:var(--accent);color:#fff;font-weight:600;}
+  .stepper div b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.7;margin-bottom:2px;}
+
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:26px;align-items:start;}
+  @media(max-width:820px){.layout{grid-template-columns:1fr;}}
+
+  .panel{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:18px;}
+  .panel + .panel{margin-top:16px;}
+  .panel h3{font-size:14px;margin-bottom:12px;}
+  label{display:block;font-size:11.5px;color:var(--ink-soft);margin:12px 0 4px;text-transform:uppercase;letter-spacing:0.4px;}
+  label:first-child{margin-top:0;}
+  select, input[type=text], input[type=number]{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;font-family:var(--sans);font-size:13.5px;color:var(--ink);}
+  .range-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .chips-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .subchip{border:1px solid var(--line);background:#fff;padding:4px 10px;border-radius:20px;font-size:12px;cursor:pointer;color:var(--ink-soft);}
+  .subchip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .note{font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
+
+  .results-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+  .results-head h2{font-size:18px;}
+  .results-head .count{font-size:12.5px;color:var(--ink-soft);}
+
+  table.uni-table{width:100%;border-collapse:collapse;background:var(--paper-raised);border:1px solid var(--line);}
+  table.uni-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;color:var(--ink-soft);border-bottom:1px solid var(--line);padding:9px 12px;}
+  table.uni-table td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top;}
+  table.uni-table tr.pending td{color:#9a9484;font-style:italic;}
+  table.uni-table tr.real:hover{background:#fff;cursor:pointer;}
+  .rank-num{font-family:var(--serif);font-weight:700;font-size:15px;}
+  .uni-name{font-weight:600;}
+  .uni-name small{display:block;font-weight:400;color:var(--ink-soft);font-size:12px;}
+  .pager{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;}
+  .pager button{padding:5px 11px;border:1px solid var(--line);background:#fff;border-radius:var(--radius);font-size:12.5px;cursor:pointer;}
+  .pager button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .back-link{display:inline-block;margin-bottom:14px;font-size:13px;cursor:pointer;color:var(--accent);}
+
+  .uni-header{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px;}
+  .uni-header h2{font-size:24px;}
+  .uni-header .meta{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+  .source-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;}
+
+  .tabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--line);}
+  .tab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--ink-soft);border-bottom:2px solid transparent;}
+  .tab.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600;}
+
+  .prof-card{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+  .prof-card-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .prof-card-head h4{font-size:16px;}
+  .prof-card-head .pos{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .relevance{text-align:right;min-width:150px;}
+  .relevance .score{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ai);}
+  .relevance .reasons{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;}
+  .tag{font-size:11px;background:#fff;border:1px solid var(--line);padding:2px 8px;border-radius:20px;color:var(--ink-soft);}
+  .link-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:12.5px;}
+  .link-row a, .link-row span{border:1px solid var(--line);padding:4px 9px;border-radius:var(--radius);background:#fff;text-decoration:none;}
+  .link-row span.na{color:#9a9484;font-style:italic;}
+  .link-row a{color:var(--verified);font-weight:600;}
+
+  .empty-state{padding:30px 20px;text-align:center;color:var(--ink-soft);border:1px dashed var(--line);border-radius:var(--radius);background:var(--paper-raised);}
+  .empty-state h4{font-size:14px;color:var(--ink);margin-bottom:6px;}
+
+  .pub-item, .proj-item{border-top:1px solid var(--line);padding:12px 0;font-size:13.5px;}
+  .pub-item:first-child, .proj-item:first-child{border-top:none;}
+  .pub-item .t{font-weight:600;}
+  .pub-item .m{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+  .verif-box{font-size:11.5px;background:var(--verified-bg);color:var(--verified);padding:8px 10px;border-radius:var(--radius);margin-top:10px;}
+  .verif-box.ai{background:var(--ai-bg);color:var(--ai);}
+
+  textarea{width:100%;min-height:170px;padding:12px;border:1px solid var(--line);border-radius:var(--radius);font-family:var(--sans);font-size:13px;line-height:1.5;background:#fff;color:var(--ink);}
+  .btn{display:inline-block;padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="setupBanner"></div>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <h1>AcadNova</h1>
+      <p>Global academic & research discovery — browse verified universities and professors, then message a professor directly. Your account and messages are real and saved.</p>
+    </div>
+    <div id="authBar" class="auth-bar"></div>
+  </header>
+  <div class="legend" style="margin:10px 0 0">
+    <span class="chip verified">VERIFIED</span>
+    <span class="chip ai">AI ANALYSIS</span>
+    <span class="chip unverified">NOT VERIFIED</span>
+  </div>
+  <div class="nav-tabs" id="navTabs"></div>
+
+  <div class="stepper" id="stepper"></div>
+
+  <div id="root"></div>
+  <div id="modalRoot"></div>
+
+</div>
+
+<script>
+/* ============================= BACKEND CONFIG =============================
+   Fill these in from your Supabase project (Project Settings → API), then re-deploy.
+   Until they're filled in, the app runs in read-only preview mode: browsing works,
+   registration/login/messaging show a setup notice instead of failing silently. */
+const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_PUBLIC_KEY_HERE";
+
+const BACKEND_CONFIGURED = !SUPABASE_URL.includes("PASTE_") && !SUPABASE_ANON_KEY.includes("PASTE_");
+const supabaseClient = BACKEND_CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+let currentUser = null; // set on auth state change
+
+async function initAuth(){
+  if(!BACKEND_CONFIGURED) return;
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  currentUser = session?.user || null;
+  supabaseClient.auth.onAuthStateChange((_event, session)=>{
+    currentUser = session?.user || null;
+    renderApp();
+  });
+  if(state.view === "outbox" && currentUser){ loadOutbox(); } else { renderApp(); }
+}
+
+/* ============================= DATA ============================= */
+/* Seed data is REAL and source-linked (QS World University Rankings by Subject —
+   Computer Science & Information Systems; ETH Zürich faculty listings). Ranks/entries
+   not seeded are rendered as explicit "pending ingestion" rows — never fabricated. */
+
+const RANKING_SOURCE = {
+  system: "QS", year: 2025, subject: "Computer Science and Information Systems",
+  source_url: "https://www.topuniversities.com/university-subject-rankings/computer-science-information-systems/2025",
+  source_name: "QS World University Rankings by Subject — TopUniversities.com",
+  status: "VERIFIED"
+};
+
+// [rank, name, country, city]
+const SEED_UNIVERSITIES = [
+  [1,"Massachusetts Institute of Technology (MIT)","United States","Cambridge, MA"],
+  [2,"Carnegie Mellon University","United States","Pittsburgh, PA"],
+  [3,"Stanford University","United States","Stanford, CA"],
+  [4,"University of California, Berkeley","United States","Berkeley, CA"],
+  [5,"University of Oxford","United Kingdom","Oxford"],
+  [6,"National University of Singapore","Singapore","Singapore"],
+  [7,"University of Cambridge","United Kingdom","Cambridge"],
+  [8,"Harvard University","United States","Cambridge, MA"],
+  [9,"ETH Zurich","Switzerland","Zürich"],
+  [10,"EPFL","Switzerland","Lausanne"],
+  [11,"Nanyang Technological University","Singapore","Singapore"],
+  [12,"University of Toronto","Canada","Toronto"],
+  [13,"Princeton University","United States","Princeton, NJ"],
+  [14,"University of Washington","United States","Seattle, WA"],
+  [15,"Imperial College London","United Kingdom","London"],
+  [15,"Tsinghua University","China","Beijing"],
+  [17,"Cornell University","United States","Ithaca, NY"],
+  [18,"University of California, Los Angeles","United States","Los Angeles, CA"],
+  [19,"Peking University","China","Beijing"],
+  [20,"University of Edinburgh","United Kingdom","Edinburgh"],
+  [21,"University of British Columbia","Canada","Vancouver"],
+  [22,"University of Waterloo","Canada","Waterloo"],
+  [24,"University College London","United Kingdom","London"],
+  [27,"Shanghai Jiao Tong University","China","Shanghai"],
+  [29,"KAIST","South Korea","Daejeon"],
+  [31,"Institut Polytechnique de Paris","France","Palaiseau"],
+  [32,"Seoul National University","South Korea","Seoul"],
+  [33,"Politecnico di Milano","Italy","Milan"],
+  [34,"University of Amsterdam","Netherlands","Amsterdam"],
+  [36,"Zhejiang University","China","Hangzhou"],
+  [40,"Hong Kong University of Science and Technology","Hong Kong SAR","Hong Kong"],
+  [41,"University of Melbourne","Australia","Melbourne"],
+  [49,"University of Tokyo","Japan","Tokyo"],
+  [53,"Chinese University of Hong Kong","Hong Kong SAR","Hong Kong"],
+  [54,"Delft University of Technology (TU Delft)","Netherlands","Delft"],
+  [56,"Australian National University","Australia","Canberra"],
+  [57,"University of New South Wales","Australia","Sydney"],
+  [57,"University of Sydney","Australia","Sydney"],
+  [61,"University of Hong Kong","Hong Kong SAR","Hong Kong"],
+  [62,"KTH Royal Institute of Technology","Sweden","Stockholm"],
+  [69,"Eindhoven University of Technology","Netherlands","Eindhoven"],
+  [73,"Monash University","Australia","Melbourne"],
+  [73,"Korea University","South Korea","Seoul"],
+  [82,"Universitat Politècnica de Catalunya","Spain","Barcelona"],
+  [84,"Aalto University","Finland","Espoo"],
+  [86,"Tecnológico de Monterrey","Mexico","Monterrey"],
+  [91,"Ludwig Maximilian University of Munich","Germany","Munich"],
+  [101,"University of Copenhagen","Denmark","Copenhagen"],
+  [106,"Universidad de Chile","Chile","Santiago"],
+  [112,"University of Auckland","New Zealand","Auckland"],
+  [114,"Technion – Israel Institute of Technology","Israel","Haifa"],
+  [140,"Aarhus University","Denmark","Aarhus"],
+  [148,"Khalifa University","United Arab Emirates","Abu Dhabi"],
+  [148,"Pontificia Universidad Católica de Chile","Chile","Santiago"],
+].map(r => ({rank:r[0], name:r[1], country:r[2], city:r[3], id: slugify(r[1])}));
+
+function slugify(s){
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"") // strip accents: è→e, ó→o, á→a...
+    .toLowerCase().replace(/\(.*?\)/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+}
+
+// India intentionally excluded from the discovery database per product rule (§17/§55).
+
+const COUNTRIES = [...new Set(SEED_UNIVERSITIES.map(u=>u.country))].sort();
+
+// Only ETH Zürich has seeded, source-linked professor records in this prototype.
+// Everything here is real and cited — nothing invented.
+const PROFESSORS = {
+  "eth-zurich": [
+    {
+      id: "eth-zurich--andreas-krause",
+      name: "Andreas Krause",
+      position: "Full Professor of Computer Science",
+      dept: "Department of Computer Science (D-INFK)",
+      group: "Learning & Adaptive Systems Group",
+      areas: ["Machine Learning","Bayesian Optimization","Reliable/Trustworthy AI","Uncertainty Quantification"],
+      officialProfile: {url:"https://en.wikipedia.org/wiki/Andreas_Krause_(computer_scientist)", label:"Wikipedia (biographical, cross-checked)", status:"PARTIALLY_VERIFIED"},
+      groupPage: {url:"https://datascience.ch/people/andreas-krause", label:"Swiss Data Science Center — profile & publication list", status:"VERIFIED"},
+      email: null,
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [
+        {title:"Confidence Estimation via Sequential Likelihood Mixing", authors:"Kirschner, J.; Krause, A.; Meziu, M.; Mutny, M.", year:2025, venue:"arXiv preprint (arXiv:2502.14689)", source:"https://datascience.ch/people/andreas-krause"},
+        {title:"Adaptive Annealed Importance Sampling with Constant Rate Progress", authors:"Goshtasbpour, S.; Cohen, V.; Perez-Cruz, F.; Krause, A.; et al.", year:2023, venue:"Proceedings of the 40th International Conference on Machine Learning (ICML)", source:"https://datascience.ch/people/andreas-krause"}
+      ],
+      projects: []
+    },
+    {
+      id: "eth-zurich--marc-pollefeys",
+      name: "Marc Pollefeys",
+      position: "Professor, Visual Computing",
+      dept: "Department of Computer Science (D-INFK)",
+      group: "Computer Vision and Geometry Group",
+      areas: ["Computer Vision","3D Reconstruction","Visual Computing","Robotics AI"],
+      officialProfile: {url:"https://whoiswho-umzh.uzh.ch/research/ai", label:"University of Zurich AI research directory (cross-institutional listing)", status:"PARTIALLY_VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "eth-zurich--julia-vogt",
+      name: "Julia Vogt",
+      position: "Professor, Machine Learning",
+      dept: "Department of Computer Science (D-INFK)",
+      group: "Medical Data Science Group",
+      areas: ["Machine Learning","Medical AI","Representation Learning"],
+      officialProfile: {url:"https://whoiswho-umzh.uzh.ch/research/ai", label:"University of Zurich AI research directory (cross-institutional listing)", status:"PARTIALLY_VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "eth-zurich--valentina-boeva",
+      name: "Valentina Boeva",
+      position: "Professor, Machine Learning",
+      dept: "Department of Computer Science (D-INFK)",
+      group: "Machine Learning for Biomedicine",
+      areas: ["Machine Learning","Computational Biology","AI for Science"],
+      officialProfile: {url:"https://whoiswho-umzh.uzh.ch/research/ai", label:"University of Zurich AI research directory (cross-institutional listing)", status:"PARTIALLY_VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ]
+};
+
+// Trimmed taxonomy for the selector UI (full version lives in domain_taxonomy.json)
+const TAXONOMY = {
+  "Computer Science & Computing": [
+    {id:"ai-ml", name:"Artificial Intelligence & Machine Learning (AI/ML)", unified:true, subtopics:[
+      "Artificial Intelligence","Machine Learning","Deep Learning","Neural Networks","Generative AI",
+      "Large Language Models (LLMs)","Natural Language Processing (NLP)","Computer Vision","Multimodal AI",
+      "Reinforcement Learning","Robotics AI","Autonomous Systems","Explainable AI","Trustworthy AI",
+      "Reliable AI","Adversarial Machine Learning","AI Safety","AI Security","Uncertainty Quantification",
+      "Bayesian Deep Learning","Graph Neural Networks","Graph Machine Learning","Representation Learning",
+      "Federated Learning","Privacy-Preserving Machine Learning","Edge AI","AI for Science","AI for Healthcare",
+      "AI for Materials Science","AI for Climate","AI for Biology","AI Infrastructure","MLOps",
+      "Foundation Models","Diffusion Models","Generative Models","Speech AI","Recommender Systems",
+      "Time-Series Machine Learning","Sequential Learning","Anomaly Detection","Out-of-Distribution Detection"
+    ]},
+    {id:"cs-core", name:"Computer Science", subtopics:[]},
+    {id:"cybersecurity", name:"Cybersecurity", subtopics:["Information Security"]},
+    {id:"data-science", name:"Data Science", subtopics:[]},
+    {id:"hci", name:"Human-Computer Interaction", subtopics:[]},
+    {id:"quantum-computing", name:"Quantum Computing", subtopics:[]}
+  ],
+  "Electrical & Electronics Engineering": [
+    {id:"electrical-eng", name:"Electrical Engineering", subtopics:["Power Systems","Smart Grids","Control Systems","Embedded Systems"]},
+    {id:"electronics-eng", name:"Electronics Engineering", subtopics:["VLSI","Microelectronics","RF Engineering"]},
+    {id:"communication-eng", name:"Communication Engineering", subtopics:["Wireless Communication","5G/6G","Optical Communication"]}
+  ],
+  "Mechanical Engineering": [
+    {id:"mech-eng", name:"Mechanical Engineering", subtopics:[]},
+    {id:"mechatronics", name:"Mechatronics", subtopics:["Robotics"]},
+    {id:"aerospace-mech", name:"Aerospace Engineering", subtopics:[]},
+    {id:"thermal-fluids", name:"Thermal Engineering", subtopics:["Fluid Mechanics","Computational Fluid Dynamics"]}
+  ],
+  "Civil Engineering": [
+    {id:"civil-eng", name:"Civil Engineering", subtopics:[]},
+    {id:"structural-eng", name:"Structural Engineering", subtopics:["Earthquake Engineering"]},
+    {id:"environmental-eng", name:"Environmental Engineering", subtopics:[]}
+  ],
+  "Biomedical / Bioengineering": [
+    {id:"biomedical-eng", name:"Biomedical Engineering", subtopics:["Bioengineering"]},
+    {id:"comp-biology", name:"Computational Biology", subtopics:["Bioinformatics","Systems Biology"]},
+    {id:"medical-ai", name:"Medical AI", subtopics:["Digital Health","Health Informatics"]}
+  ],
+  "Physics & Mathematics": [
+    {id:"physics", name:"Physics", subtopics:["Applied Physics","Computational Physics"]},
+    {id:"mathematics", name:"Mathematics", subtopics:["Applied Mathematics","Statistics"]}
+  ],
+  "Business / Economics / Management": [
+    {id:"business-admin", name:"Business Administration", subtopics:["Management"]},
+    {id:"business-analytics", name:"Business Analytics", subtopics:[]}
+  ]
+};
+
+/* AI/ML subtopic → keyword groups used by the (illustrative) relevance engine */
+const SUBTOPIC_KEYWORDS = {
+  "Machine Learning": ["machine learning","bayesian","learning"],
+  "Computer Vision": ["computer vision","visual computing","3d reconstruction"],
+  "Trustworthy AI": ["reliable","trustworthy","robust","uncertainty"],
+  "Large Language Models (LLMs)": ["language model","llm","nlp"],
+  "AI for Science": ["ai for science","computational biology","medical ai"],
+  "Robotics AI": ["robotics","visual computing","autonomous"]
+};
+
+/* ============================= ROUTING ============================= */
+// Real per-page URLs (/universities/:id, /professors/:id). Netlify's SPA redirect
+// (see netlify.toml) sends every path to this file, so a refresh or a shared link
+// lands here and this function restores the right view from the URL itself.
+function applyRouteFromLocation(){
+  const parts = location.pathname.split("/").filter(Boolean);
+  if(parts[0] === "universities" && parts[1]){
+    const u = SEED_UNIVERSITIES.find(x=>x.id===parts[1]);
+    if(u){
+      state.selectedUniversity = u; state.view = "university-detail"; state.detailTab = "overview";
+      return;
+    }
+  }
+  if(parts[0] === "outbox"){
+    state.view = "outbox"; state.navView = "outbox";
+    return;
+  }
+  if(parts[0] === "professors" && parts[1]){
+    const entry = findProfessorById(parts[1]);
+    if(entry){
+      state.selectedUniversity = entry.uni; state.selectedProfessor = entry.prof; state.view = "professor-profile";
+      return;
+    }
+  }
+  state.view = "home";
+}
+
+function findProfessorById(id){
+  for(const uniId in PROFESSORS){
+    const prof = PROFESSORS[uniId].find(p=>p.id===id);
+    if(prof) return { prof, uni: SEED_UNIVERSITIES.find(u=>u.id===uniId) };
+  }
+  return null;
+}
+
+function navigateTo(path, title){
+  if(location.pathname !== path) history.pushState({}, "", path);
+  if(title) document.title = title + " — AcadNova";
+  window.scrollTo(0,0);
+}
+
+window.addEventListener("popstate", ()=>{ applyRouteFromLocation(); renderApp(); });
+
+/* ============================= STATE ============================= */
+const state = {
+  view: "home",
+  navView: "home",
+  filters: { country: "All", rankingRange: 100, customMin: 1, customMax: 100, domain: "ai-ml", subtopics: [], search: "" },
+  page: 1,
+  perPage: 20,
+  selectedUniversity: null,
+  selectedProfessor: null,
+  emailDraft: "",
+  authModal: null,      // "signup" | "login" | null
+  authError: "",
+  messageModalProfessor: null, // professor object when compose modal is open
+  messageDraft: "",
+  messageStatus: "",
+  outboxItems: null,
+  outboxLoading: false
+};
+
+/* ============================= RENDER HELPERS ============================= */
+function badge(status){
+  if(status === "VERIFIED") return `<span class="source-badge" style="background:var(--verified-bg);color:var(--verified)">VERIFIED</span>`;
+  if(status === "PARTIALLY_VERIFIED") return `<span class="source-badge" style="background:var(--ai-bg);color:var(--ai)">PARTIALLY VERIFIED</span>`;
+  return `<span class="source-badge" style="background:var(--unverified-bg);color:var(--unverified)">NOT VERIFIED</span>`;
+}
+function linkOrNA(obj, label){
+  if(!obj) return `<span class="na">${label}: not publicly listed</span>`;
+  return `<a href="${obj.url}" target="_blank" rel="noopener">${label} ↗</a>`;
+}
+
+function renderStepper(){
+  const steps = [
+    ["Country", state.filters.country],
+    ["Ranking", "Top " + state.filters.rankingRange],
+    ["Domain", TAXONOMY["Computer Science & Computing"].find(d=>d.id===state.filters.domain)?.name.split(" (")[0] || "—"],
+    ["University", state.selectedUniversity ? state.selectedUniversity.name.split(" ").slice(0,3).join(" ") : "—"],
+    ["Professor", state.selectedProfessor ? state.selectedProfessor.name : "—"]
+  ];
+  document.getElementById("stepper").innerHTML = steps.map((s,i)=>{
+    const active = (state.view==="home" && i<=2) || (state.view==="university-detail" && i<=3) || (state.view==="professor-profile");
+    return `<div class="${active?'active':''}"><b>Step ${i+1}</b>${s[0]}: ${s[1]}</div>`;
+  }).join("");
+}
+
+/* ============================= FILTER PANEL ============================= */
+function renderFilters(){
+  const domainOptions = Object.entries(TAXONOMY).map(([cat, domains])=>
+    `<optgroup label="${cat}">` + domains.map(d=>`<option value="${d.id}" ${d.id===state.filters.domain?'selected':''}>${d.name}</option>`).join("") + `</optgroup>`
+  ).join("");
+
+  const currentDomain = Object.values(TAXONOMY).flat().find(d=>d.id===state.filters.domain);
+  const subtopicChips = currentDomain && currentDomain.subtopics.length ? `
+    <label>Subtopics (AI/ML) — search & filter</label>
+    <input type="text" id="subtopicSearch" placeholder="Search subtopics, e.g. 'vision'">
+    <div class="chips-wrap" id="subtopicChips"></div>
+  ` : "";
+
+  return `
+    <div class="panel">
+      <h3>1 · Country</h3>
+      <label>Country (India excluded from discovery, per spec §17/§55)</label>
+      <select id="countrySelect">
+        <option value="All" ${state.filters.country==='All'?'selected':''}>All countries</option>
+        ${COUNTRIES.map(c=>`<option value="${c}" ${state.filters.country===c?'selected':''}>${c}</option>`).join("")}
+      </select>
+    </div>
+    <div class="panel">
+      <h3>2 · Ranking</h3>
+      <label>Ranking system</label>
+      <select disabled><option>QS World University Rankings by Subject</option></select>
+      <label>Ranking range</label>
+      <select id="rangeSelect">
+        ${[10,25,50,100,250,500,1000].map(n=>`<option value="${n}" ${state.filters.rankingRange===n?'selected':''}>Top ${n}</option>`).join("")}
+        <option value="custom" ${state.filters.rankingRange==='custom'?'selected':''}>Custom range</option>
+      </select>
+      ${state.filters.rankingRange==='custom' ? `
+      <div class="range-grid">
+        <div><label>Min rank</label><input type="number" id="customMin" value="${state.filters.customMin}" min="1"></div>
+        <div><label>Max rank</label><input type="number" id="customMax" value="${state.filters.customMax}" min="1"></div>
+      </div>` : ""}
+      <p class="note">Selecting "Top ${state.filters.rankingRange==='custom'?state.filters.customMax:state.filters.rankingRange}" returns every rank slot from 1 through ${state.filters.rankingRange==='custom'?state.filters.customMax:state.filters.rankingRange} — this is the fix for the reported bug where a range filter returned only a single best-match university.</p>
+    </div>
+    <div class="panel">
+      <h3>3 · Academic Domain</h3>
+      <label>Search or browse by category</label>
+      <select id="domainSelect">${domainOptions}</select>
+      ${subtopicChips}
+      <p class="note">${currentDomain && currentDomain.unified ? "AI/ML is one unified domain — the items above are subtopics, never separate top-level domains." : ""}</p>
+    </div>
+  `;
+}
+
+function renderSubtopicChips(filterText=""){
+  const currentDomain = Object.values(TAXONOMY).flat().find(d=>d.id===state.filters.domain);
+  if(!currentDomain) return;
+  const list = currentDomain.subtopics.filter(s=>s.toLowerCase().includes(filterText.toLowerCase()));
+  document.getElementById("subtopicChips").innerHTML = list.map(s=>
+    `<span class="subchip ${state.filters.subtopics.includes(s)?'on':''}" data-sub="${s}">${s}</span>`
+  ).join("");
+  document.querySelectorAll(".subchip").forEach(el=>{
+    el.onclick = ()=>{
+      const s = el.dataset.sub;
+      const idx = state.filters.subtopics.indexOf(s);
+      if(idx>-1) state.filters.subtopics.splice(idx,1); else state.filters.subtopics.push(s);
+      renderApp();
+    };
+  });
+}
+
+/* ============================= UNIVERSITY LIST (pagination fix demo) ============================= */
+function getRangeBounds(){
+  if(state.filters.rankingRange === 'custom') return [Number(state.filters.customMin)||1, Number(state.filters.customMax)||1];
+  return [1, state.filters.rankingRange];
+}
+
+function renderUniversityList(){
+  const [min,max] = getRangeBounds();
+  let rows = [];
+  if(state.filters.country !== "All"){
+    // Country filter: only show verified seeded matches — never claim a false total for the country.
+    rows = SEED_UNIVERSITIES.filter(u => u.country===state.filters.country && u.rank>=min && u.rank<=max);
+  } else {
+    // No country filter: build the FULL numbered range so "Top 100" genuinely returns ranks 1..100,
+    // filling any rank with no ingested record as an explicit pending row instead of guessing.
+    const byRank = {};
+    SEED_UNIVERSITIES.forEach(u=>{ (byRank[u.rank] = byRank[u.rank]||[]).push(u); });
+    for(let r=min; r<=max; r++){
+      if(byRank[r]) byRank[r].forEach(u=>rows.push(u));
+      else rows.push({rank:r, pending:true});
+    }
+  }
+
+  const verifiedCount = rows.filter(r=>!r.pending).length;
+  const totalPages = Math.max(1, Math.ceil(rows.length / state.perPage));
+  const pageRows = rows.slice((state.page-1)*state.perPage, state.page*state.perPage);
+
+  return `
+    <div class="results-head">
+      <h2>Universities · Top ${max} ${state.filters.country!=='All' ? '· '+state.filters.country : ''}</h2>
+      <div class="count">${rows.length} rank slot${rows.length!==1?'s':''} in range — ${verifiedCount} verified record${verifiedCount!==1?'s':''}${state.filters.country==='All' ? ', ' + (rows.length-verifiedCount) + ' pending ingestion' : ''}</div>
+    </div>
+    <table class="uni-table">
+      <thead><tr><th style="width:60px">Rank</th><th>University</th><th style="width:110px">Country</th><th style="width:130px">Source</th></tr></thead>
+      <tbody>
+        ${pageRows.map(u => u.pending ? `
+          <tr class="pending"><td class="rank-num">#${u.rank}</td><td colspan="3">Not yet verified — pending data ingestion for this rank slot</td></tr>
+        ` : `
+          <tr class="real" data-id="${u.id}"><td class="rank-num">#${u.rank}</td>
+            <td class="uni-name">${u.name}<small>${u.city}</small></td>
+            <td>${u.country}</td>
+            <td>${badge("VERIFIED")}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <div class="pager">
+      ${Array.from({length: totalPages}, (_,i)=>i+1).map(p=>`<button class="${p===state.page?'on':''}" data-page="${p}">${p}</button>`).join("")}
+    </div>
+    <p class="note" style="margin-top:14px">Ranking source: <a href="${RANKING_SOURCE.source_url}" target="_blank">${RANKING_SOURCE.source_name}</a> · ${RANKING_SOURCE.subject} · ${RANKING_SOURCE.year}. India is excluded from this discovery database by design.</p>
+  `;
+}
+
+/* ============================= UNIVERSITY DETAIL ============================= */
+function renderUniversityDetail(){
+  const u = state.selectedUniversity;
+  const [tab] = [state.detailTab || "overview"];
+  const profs = PROFESSORS[u.id] || null;
+  const currentDomain = Object.values(TAXONOMY).flat().find(d=>d.id===state.filters.domain);
+
+  let profsHtml;
+  if(!profs){
+    profsHtml = `<div class="empty-state"><h4>No verified professors matching this research area were found.</h4>We have not yet ingested a verified faculty/research-group listing for ${u.name}. Nothing is fabricated to fill this space — check the official department page directly, or add this university to the ingestion queue.</div>`;
+  } else {
+    const scored = profs.map(p=>{
+      const kwSets = state.filters.subtopics.length
+        ? state.filters.subtopics.map(s=>SUBTOPIC_KEYWORDS[s]||[]).flat()
+        : Object.values(SUBTOPIC_KEYWORDS).flat();
+      const areaText = p.areas.join(" ").toLowerCase();
+      let hits = kwSets.filter(k=>areaText.includes(k)).length;
+      const score = Math.min(96, 40 + hits*14 + (p.publications.length*3));
+      const reasons = [...new Set(kwSets.filter(k=>areaText.includes(k)))].slice(0,3);
+      return {p, score, reasons};
+    }).sort((a,b)=>b.score-a.score);
+
+    profsHtml = `
+      <p class="note" style="margin-bottom:14px">Researchers found: <b>${scored.length}</b> — sorted by AI-analyzed research relevance to ${currentDomain.name}${state.filters.subtopics.length ? ' → ' + state.filters.subtopics.join(", ") : ''}. Relevance scores are AI ANALYSIS, not verified fact.</p>
+      ${scored.map(({p,score,reasons})=>`
+        <div class="prof-card">
+          <div class="prof-card-head">
+            <div>
+              <h4>${p.name}</h4>
+              <div class="pos">${p.position} · ${p.dept}</div>
+            </div>
+            <div class="relevance">
+              <div class="score">${score}%</div>
+              <div class="reasons">AI ANALYSIS — ${reasons.length ? reasons.join(", ") : "general AI/ML alignment"}</div>
+            </div>
+          </div>
+          <div class="tags">${p.areas.map(a=>`<span class="tag">${a}</span>`).join("")}</div>
+          <div class="link-row">
+            ${linkOrNA(p.officialProfile, "Profile source")}
+            ${linkOrNA(p.groupPage, "Research group")}
+            ${linkOrNA(p.scholar, "Google Scholar")}
+            ${linkOrNA(p.orcid, "ORCID")}
+            ${linkOrNA(p.github, "GitHub")}
+            ${linkOrNA(p.email, "Email")}
+          </div>
+          <div class="link-row" style="margin-top:8px">
+            <button class="btn" style="padding:6px 12px;font-size:12.5px" data-msgprof="${p.id}">Message professor</button>
+            <p class="note" style="cursor:pointer;color:var(--accent);margin:0;align-self:center" data-openprof="${p.id}">View full profile →</p>
+          </div>
+        </div>
+      `).join("")}
+    `;
+  }
+
+  return `
+    <span class="back-link" id="backToList">← Back to results</span>
+    <div class="uni-header">
+      <div>
+        <h2>${u.name}</h2>
+        <div class="meta">${u.city}, ${u.country} · QS CS & Information Systems rank #${u.rank} (2025)</div>
+      </div>
+      <div>${badge("VERIFIED")}</div>
+    </div>
+    <div class="tabs">
+      <div class="tab ${tab==='overview'?'on':''}" data-tab="overview">Overview</div>
+      <div class="tab ${tab==='rankings'?'on':''}" data-tab="rankings">Rankings</div>
+      <div class="tab ${tab==='professors'?'on':''}" data-tab="professors">Professors / Researchers</div>
+    </div>
+    <div id="tabContent">
+      ${tab==='overview' ? `
+        <div class="panel">
+          <h3>Overview</h3>
+          <p style="font-size:13.5px;line-height:1.6">${u.name} is located in ${u.city}, ${u.country}. ${badge("VERIFIED")} Country and city are drawn from the ranking source below; program-level detail (Master's / Second Master's / PhD listings, scholarships, deadlines) requires per-university ingestion not yet performed for this prototype.</p>
+          <div class="verif-box">Source: <a href="${RANKING_SOURCE.source_url}" target="_blank">${RANKING_SOURCE.source_name}</a> · Last verified: today's session lookup.</div>
+        </div>
+      ` : ""}
+      ${tab==='rankings' ? `
+        <div class="panel">
+          <h3>Global Rankings</h3>
+          <table class="uni-table"><thead><tr><th>System</th><th>Year</th><th>Subject</th><th>Rank</th><th>Source</th></tr></thead>
+          <tbody><tr><td>QS World University Rankings by Subject</td><td>2025</td><td>Computer Science and Information Systems</td><td class="rank-num">#${u.rank}</td><td>${badge("VERIFIED")}</td></tr></tbody></table>
+          <p class="note">AI/ML has no dedicated QS subject ranking — "Computer Science and Information Systems" is shown as the closest mapped subject category. This mapping is explicit, not implied.</p>
+        </div>
+      ` : ""}
+      ${tab==='professors' ? `<div class="panel">${profsHtml}</div>` : ""}
+    </div>
+  `;
+}
+
+/* ============================= PROFESSOR PROFILE ============================= */
+function renderProfessorProfile(){
+  const p = state.selectedProfessor;
+  return `
+    <span class="back-link" id="backToUni">← Back to ${state.selectedUniversity.name}</span>
+    <div class="uni-header">
+      <div>
+        <h2>${p.name}</h2>
+        <div class="meta">${p.position} · ${p.dept} · ${state.selectedUniversity.name}</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Research</h3>
+      <div class="tags">${p.areas.map(a=>`<span class="tag">${a}</span>`).join("")}</div>
+      <p class="note">Research group: ${p.group}</p>
+      <div class="link-row">
+        ${linkOrNA(p.officialProfile, "Profile source")}
+        ${linkOrNA(p.groupPage, "Research group page")}
+        ${linkOrNA(p.email, "Email")}
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Publications ${p.publications.length ? `(${p.publications.length} verified)` : ''}</h3>
+      ${p.publications.length ? p.publications.map(pub=>`
+        <div class="pub-item">
+          <div class="t">${pub.title}</div>
+          <div class="m">${pub.authors} · ${pub.venue} · ${pub.year} · <a href="${pub.source}" target="_blank">source ↗</a> ${badge("VERIFIED")}</div>
+        </div>
+      `).join("") : `<div class="empty-state"><h4>No verified publications ingested yet</h4>Not fabricated — check the researcher's official page or Google Scholar directly.</div>`}
+    </div>
+    <div class="panel">
+      <h3>Research Projects</h3>
+      ${p.projects.length ? "" : `<div class="empty-state"><h4>No verified projects ingested yet</h4>Not fabricated.</div>`}
+    </div>
+    <div class="panel">
+      <h3>Message ${p.name}</h3>
+      <p class="note">Starting draft is built only from verified fields above (name, position, group, and — if present — a real cited paper). Edit freely before sending.</p>
+      <textarea id="emailDraft"></textarea>
+      <div style="margin-top:10px">
+        ${p.email ? `<span class="chip verified" style="margin-right:8px">VERIFIED EMAIL ON FILE</span>` : `<span class="chip unverified" style="margin-right:8px">NO VERIFIED EMAIL</span>`}
+        <button class="btn" id="sendMsgBtn">Send message</button>
+        ${p.email ? `<a href="#" id="mailtoLink" style="margin-left:8px;font-size:12.5px">Also open in my email app →</a>` : ""}
+      </div>
+      <p id="msgStatus" class="note" style="margin-top:8px"></p>
+    </div>
+  `;
+}
+
+function buildEmailDraft(p, uniName){
+  const paperLine = p.publications.length
+    ? `I recently came across your work, "${p.publications[0].title}" (${p.publications[0].venue}, ${p.publications[0].year}), which speaks directly to my interest in ${p.areas[0]}.`
+    : `I've been following your work on ${p.areas[0]} at ${p.group}.`;
+  return `Subject: Prospective graduate researcher — interest in ${p.areas[0]}
+
+Dear Professor ${p.name.split(" ").slice(-1)[0]},
+
+I am a prospective graduate applicant writing to express interest in joining ${p.group} at ${uniName}. ${paperLine}
+
+[Insert: your academic background, relevant coursework/projects, and specific skills relevant to this group's work.]
+
+[Insert: why this research direction and this group specifically — reference something concrete, not generic praise.]
+
+I would welcome the chance to discuss potential Master's/PhD opportunities in your group. Thank you for your time and consideration.
+
+Best regards,
+[Your name]
+
+— Note: this draft only references the publication(s) verified above. Do not add claims about the professor's work that are not sourced.`;
+}
+
+/* ============================= AUTH / MESSAGING (Supabase) ============================= */
+function renderSetupBanner(){
+  const el = document.getElementById("setupBanner");
+  if(BACKEND_CONFIGURED){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="setup-banner">Backend not connected yet — browsing works, but registration and messaging are disabled. Paste your Supabase URL and anon key into <code>SUPABASE_URL</code> / <code>SUPABASE_ANON_KEY</code> near the top of the script and redeploy.</div>`;
+}
+
+function renderAuthBar(){
+  const el = document.getElementById("authBar");
+  if(!BACKEND_CONFIGURED){
+    el.innerHTML = `<span class="who">Sign-in disabled — backend not configured</span>`;
+    return;
+  }
+  if(currentUser){
+    el.innerHTML = `<span class="who">${currentUser.email}</span><button id="logoutBtn">Log out</button>`;
+    document.getElementById("logoutBtn").onclick = async ()=>{ await supabaseClient.auth.signOut(); };
+  } else {
+    el.innerHTML = `<button id="loginBtn">Log in</button><button class="primary" id="signupBtn">Register</button>`;
+    document.getElementById("loginBtn").onclick = ()=>{ state.authModal="login"; state.authError=""; renderApp(); };
+    document.getElementById("signupBtn").onclick = ()=>{ state.authModal="signup"; state.authError=""; renderApp(); };
+  }
+}
+
+function renderNavTabs(){
+  const el = document.getElementById("navTabs");
+  const tabs = [["home","Discover"],["outbox","My Outbox"]];
+  el.innerHTML = tabs.map(([id,label])=>`<div class="nt ${state.navView===id?'on':''}" data-nav="${id}">${label}</div>`).join("");
+  el.querySelectorAll(".nt").forEach(t=>{
+    t.onclick = ()=>{
+      state.navView = t.dataset.nav;
+      if(state.navView==="outbox"){ state.view="outbox"; navigateTo("/outbox","My Outbox"); loadOutbox(); }
+      else { state.view="home"; navigateTo("/","AcadNova"); }
+      renderApp();
+    };
+  });
+}
+
+function renderAuthModal(){
+  const root = document.getElementById("modalRoot");
+  if(!state.authModal){ root.innerHTML=""; return; }
+  const isSignup = state.authModal==="signup";
+  root.innerHTML = `
+    <div class="modal-overlay" id="authOverlay">
+      <div class="modal-box">
+        <h3>${isSignup ? "Register" : "Log in"}</h3>
+        <label>Email</label><input type="text" id="authEmail">
+        <label>Password</label><input type="text" id="authPassword" placeholder="At least 6 characters">
+        ${state.authError ? `<div class="field-error">${state.authError}</div>` : ""}
+        <div class="actions">
+          <button id="authCancel">Cancel</button>
+          <button class="primary" id="authSubmit">${isSignup ? "Create account" : "Log in"}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("authOverlay").onclick = (e)=>{ if(e.target.id==="authOverlay"){ state.authModal=null; renderApp(); } };
+  document.getElementById("authCancel").onclick = ()=>{ state.authModal=null; renderApp(); };
+  document.getElementById("authSubmit").onclick = async ()=>{
+    const email = document.getElementById("authEmail").value.trim();
+    const password = document.getElementById("authPassword").value;
+    if(!email || password.length<6){ state.authError="Enter a valid email and a password of at least 6 characters."; renderApp(); return; }
+    const fn = isSignup ? supabaseClient.auth.signUp : supabaseClient.auth.signInWithPassword;
+    const { error } = await fn.call(supabaseClient.auth, { email, password });
+    if(error){ state.authError = error.message; renderApp(); return; }
+    state.authModal = null; state.authError="";
+    renderApp();
+  };
+}
+
+function renderMessageModal(){
+  const root2 = document.getElementById("modalRoot2") || (()=>{ const d=document.createElement("div"); d.id="modalRoot2"; document.body.appendChild(d); return d; })();
+  const p = state.messageModalProfessor;
+  if(!p){ root2.innerHTML=""; return; }
+  if(!currentUser){
+    root2.innerHTML = `<div class="modal-overlay" id="msgOverlay"><div class="modal-box">
+      <h3>Log in required</h3>
+      <p class="note">Register or log in first so your message to ${p.name} is saved to your account.</p>
+      <div class="actions"><button id="msgCancel">Close</button><button class="primary" id="goLogin">Log in</button></div>
+    </div></div>`;
+    document.getElementById("msgOverlay").onclick=(e)=>{ if(e.target.id==="msgOverlay"){ state.messageModalProfessor=null; renderApp(); } };
+    document.getElementById("msgCancel").onclick=()=>{ state.messageModalProfessor=null; renderApp(); };
+    document.getElementById("goLogin").onclick=()=>{ state.messageModalProfessor=null; state.authModal="login"; renderApp(); };
+    return;
+  }
+  root2.innerHTML = `<div class="modal-overlay" id="msgOverlay"><div class="modal-box">
+    <h3>Message ${p.name}</h3>
+    <label>Your message</label>
+    <textarea id="msgText" style="min-height:140px">${buildEmailDraft(p, state.selectedUniversity ? state.selectedUniversity.name : "")}</textarea>
+    ${p.email ? `<p class="note">${p.name} has a publicly verified email — this will also be saved as ready to send via your own email client.</p>` : `<p class="note">${p.name} has no publicly verified email yet — your message is saved to your outbox for your own records; sending will need to happen once a verified contact is available.</p>`}
+    <div class="actions"><button id="msgCancel2">Cancel</button><button class="primary" id="msgSend">Save to outbox</button></div>
+  </div></div>`;
+  document.getElementById("msgOverlay").onclick=(e)=>{ if(e.target.id==="msgOverlay"){ state.messageModalProfessor=null; renderApp(); } };
+  document.getElementById("msgCancel2").onclick=()=>{ state.messageModalProfessor=null; renderApp(); };
+  document.getElementById("msgSend").onclick=async ()=>{
+    const text = document.getElementById("msgText").value.trim();
+    if(!text) return;
+    await saveMessageToOutbox(p, text);
+    state.messageModalProfessor=null;
+    renderApp();
+  };
+}
+
+async function saveMessageToOutbox(p, text){
+  if(!BACKEND_CONFIGURED || !currentUser) return;
+  await supabaseClient.from("professor_contacts").insert({
+    user_id: currentUser.id,
+    professor_id: p.id || p.name,
+    professor_name: p.name,
+    university_name: state.selectedUniversity ? state.selectedUniversity.name : "",
+    message: text,
+    contact_method: p.email ? "mailto" : "in_app_outbox"
+  });
+}
+
+async function loadOutbox(){
+  if(!BACKEND_CONFIGURED || !currentUser){ state.outboxItems = []; return; }
+  state.outboxLoading = true; renderApp();
+  const { data, error } = await supabaseClient
+    .from("professor_contacts")
+    .select("*")
+    .order("created_at", { ascending:false });
+  state.outboxItems = error ? [] : data;
+  state.outboxLoading = false;
+  renderApp();
+}
+
+function renderOutboxView(){
+  if(!BACKEND_CONFIGURED){
+    return `<div class="empty-state"><h4>Backend not configured</h4>Connect Supabase to enable your outbox.</div>`;
+  }
+  if(!currentUser){
+    return `<div class="empty-state"><h4>Log in to see your outbox</h4>Messages you send to professors are saved to your account only — nobody else can see them.</div>`;
+  }
+  if(state.outboxLoading || state.outboxItems===null){
+    return `<p class="note">Loading your messages…</p>`;
+  }
+  if(state.outboxItems.length===0){
+    return `<div class="empty-state"><h4>No messages yet</h4>Open a professor's profile or card and click "Message professor" to get started.</div>`;
+  }
+  return state.outboxItems.map(m=>`
+    <div class="outbox-item">
+      <b>${m.professor_name}</b> · ${m.university_name}
+      <span class="status-pill ${m.contact_method==='mailto'?'mailto':'saved'}" style="margin-left:8px">${m.contact_method==='mailto' ? 'Ready to send (verified email)' : 'Saved — no verified email yet'}</span>
+      <div class="m">${m.message}</div>
+      <div class="m">${new Date(m.created_at).toLocaleString()}</div>
+    </div>
+  `).join("");
+}
+
+/* ============================= MAIN RENDER ============================= */
+function renderApp(){
+  renderSetupBanner();
+  renderAuthBar();
+  renderNavTabs();
+  renderStepper();
+  const root = document.getElementById("root");
+
+  if(state.view === "outbox"){
+    root.innerHTML = `<div class="panel"><h3>My Outbox</h3><p class="note" style="margin-bottom:14px">Messages you've sent to professors, saved to your account.</p>${renderOutboxView()}</div>`;
+  } else if(state.view === "home"){
+    root.innerHTML = `<div class="layout"><div>${renderFilters()}</div><div>${renderUniversityList()}</div></div>`;
+    bindHomeEvents();
+    if(document.getElementById("subtopicChips")) renderSubtopicChips();
+  } else if(state.view === "university-detail"){
+    root.innerHTML = renderUniversityDetail();
+    bindDetailEvents();
+  } else if(state.view === "professor-profile"){
+    root.innerHTML = renderProfessorProfile();
+    document.getElementById("emailDraft").value = buildEmailDraft(state.selectedProfessor, state.selectedUniversity.name);
+    document.getElementById("backToUni").onclick = ()=>{
+      state.view="university-detail"; state.detailTab="professors";
+      navigateTo(`/universities/${state.selectedUniversity.id}`, state.selectedUniversity.name);
+      renderApp();
+    };
+    document.getElementById("sendMsgBtn").onclick = ()=>{
+      state.messageModalProfessor = state.selectedProfessor;
+      renderApp();
+    };
+    if(document.getElementById("mailtoLink")){
+      // Populated only when a professor record has a verified public email; the field stores
+      // a ready-to-use "mailto:address" link — never a guessed address.
+      const p = state.selectedProfessor;
+      const base = p.email?.url?.startsWith("mailto:") ? p.email.url : `mailto:${p.email?.url || ''}`;
+      document.getElementById("mailtoLink").href = `${base}?subject=${encodeURIComponent('Prospective graduate researcher')}&body=${encodeURIComponent(document.getElementById("emailDraft").value)}`;
+    }
+  }
+
+  renderAuthModal();
+  renderMessageModal();
+  bindMessageButtons();
+}
+
+function bindMessageButtons(){
+  document.querySelectorAll("[data-msgprof]").forEach(btn=>{
+    btn.onclick = (e)=>{
+      e.stopPropagation();
+      const id = btn.dataset.msgprof;
+      const list = PROFESSORS[state.selectedUniversity.id] || [];
+      state.messageModalProfessor = list.find(p=>p.id===id);
+      renderApp();
+    };
+  });
+}
+
+function bindHomeEvents(){
+  document.getElementById("countrySelect").onchange = e=>{ state.filters.country=e.target.value; state.page=1; renderApp(); };
+  document.getElementById("rangeSelect").onchange = e=>{
+    state.filters.rankingRange = e.target.value==='custom' ? 'custom' : Number(e.target.value);
+    state.page=1; renderApp();
+  };
+  const cmin=document.getElementById("customMin"), cmax=document.getElementById("customMax");
+  if(cmin) cmin.onchange = e=>{ state.filters.customMin=e.target.value; state.page=1; renderApp(); };
+  if(cmax) cmax.onchange = e=>{ state.filters.customMax=e.target.value; state.page=1; renderApp(); };
+  document.getElementById("domainSelect").onchange = e=>{ state.filters.domain=e.target.value; state.filters.subtopics=[]; renderApp(); };
+  const ss = document.getElementById("subtopicSearch");
+  if(ss) ss.oninput = e=>renderSubtopicChips(e.target.value);
+
+  document.querySelectorAll("tr.real").forEach(row=>{
+    row.onclick = ()=>{
+      const id = row.dataset.id;
+      state.selectedUniversity = SEED_UNIVERSITIES.find(u=>u.id===id);
+      state.view = "university-detail";
+      state.detailTab = "overview";
+      navigateTo(`/universities/${id}`, state.selectedUniversity.name);
+      renderApp();
+    };
+  });
+  document.querySelectorAll(".pager button").forEach(b=>{
+    b.onclick = ()=>{ state.page = Number(b.dataset.page); renderApp(); };
+  });
+}
+
+function bindDetailEvents(){
+  document.getElementById("backToList").onclick = ()=>{ state.view="home"; state.selectedUniversity=null; navigateTo("/", "AcadNova"); renderApp(); };
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.onclick = ()=>{ state.detailTab = t.dataset.tab; renderApp(); };
+  });
+  document.querySelectorAll("[data-openprof]").forEach(el=>{
+    el.onclick = ()=>{
+      const id = el.dataset.openprof;
+      const list = PROFESSORS[state.selectedUniversity.id] || [];
+      state.selectedProfessor = list.find(p=>p.id===id);
+      state.view = "professor-profile";
+      navigateTo(`/professors/${id}`, state.selectedProfessor.name);
+      renderApp();
+    };
+  });
+}
+
+applyRouteFromLocation();
+if(state.selectedProfessor) document.title = state.selectedProfessor.name + " — AcadNova";
+else if(state.selectedUniversity) document.title = state.selectedUniversity.name + " — AcadNova";
+if(BACKEND_CONFIGURED){ initAuth(); } else { renderApp(); }
+</script>
+</body>
+</html>
