@@ -175,8 +175,8 @@
    Fill these in from your Supabase project (Project Settings → API), then re-deploy.
    Until they're filled in, the app runs in read-only preview mode: browsing works,
    registration/login/messaging show a setup notice instead of failing silently. */
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_PUBLIC_KEY_HERE";
+const SUPABASE_URL = "https://nxnaraedzsmfdjsrvsoa.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_ObenIRu-UMJzGRj8J0wKWA_v7l3_KDq";
 
 const BACKEND_CONFIGURED = !SUPABASE_URL.includes("PASTE_") && !SUPABASE_ANON_KEY.includes("PASTE_");
 const supabaseClient = BACKEND_CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
