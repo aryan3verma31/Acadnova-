@@ -324,6 +324,173 @@ const COUNTRIES = [...new Set(SEED_UNIVERSITIES.map(u=>u.country))].sort();
 // Only ETH Zürich has seeded, source-linked professor records in this prototype.
 // Everything here is real and cited — nothing invented.
 const PROFESSORS = {
+  "stanford-university": [
+    {
+      id: "stanford--fei-fei-li",
+      name: "Fei-Fei Li",
+      position: "Sequoia Professor of Computer Science; Co-Director, Stanford HAI",
+      dept: "Department of Computer Science",
+      group: "Stanford Artificial Intelligence Laboratory (SAIL)",
+      areas: ["Artificial Intelligence","Computer Vision","Machine Learning","AI + Healthcare"],
+      officialProfile: {url:"https://profiles.stanford.edu/fei-fei-li", label:"Stanford Profiles — official faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://ai.stanford.edu/faculty/", label:"Stanford AI Lab (SAIL) — faculty directory", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "stanford--percy-liang",
+      name: "Percy Liang",
+      position: "Associate Professor of Computer Science; Director, Center for Research on Foundation Models",
+      dept: "Department of Computer Science",
+      group: "Stanford Artificial Intelligence Laboratory (SAIL)",
+      areas: ["Machine Learning","Natural Language Processing","Foundation Models"],
+      officialProfile: {url:"https://profiles.stanford.edu/percy-liang", label:"Stanford Profiles — official faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://ai.stanford.edu/faculty/", label:"Stanford AI Lab (SAIL) — faculty directory", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "carnegie-mellon-university": [
+    {
+      id: "cmu--zico-kolter",
+      name: "J. Zico Kolter",
+      position: "Professor & Director, Machine Learning Department",
+      dept: "School of Computer Science",
+      group: "Machine Learning Department",
+      areas: ["Machine Learning","AI Safety","Deep Learning Robustness"],
+      officialProfile: {url:"https://www.ml.cmu.edu/", label:"CMU Machine Learning Department — official site", status:"VERIFIED"},
+      groupPage: {url:"http://zkolter.github.io/", label:"Personal research page (linked from CMU ML Dept)", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "cmu--tom-mitchell",
+      name: "Tom M. Mitchell",
+      position: "Founders University Professor; Founding Chair, Machine Learning Department",
+      dept: "School of Computer Science",
+      group: "Machine Learning Department",
+      areas: ["Machine Learning","Artificial Intelligence","Cognitive Neuroscience"],
+      officialProfile: {url:"https://www.ml.cmu.edu/", label:"CMU Machine Learning Department — official site", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "national-university-of-singapore": [
+    {
+      id: "nus--mohan-kankanhalli",
+      name: "Mohan Kankanhalli",
+      position: "Provost's Chair Professor of Computer Science; Director, NUS AI Institute",
+      dept: "School of Computing",
+      group: "NUS Artificial Intelligence Institute (AI Institute)",
+      areas: ["Computer Vision","Multimedia Computing","Trustworthy AI","Privacy"],
+      officialProfile: {url:"https://ai.nus.edu.sg/about-us/people/leadership/", label:"NUS AI Institute — official leadership page", status:"VERIFIED"},
+      groupPage: {url:"https://ai.nus.edu.sg/", label:"NUS Artificial Intelligence Institute homepage", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "nus--tze-yun-leong",
+      name: "Tze Yun Leong",
+      position: "Professor of Computer Science; Director, NUS AI Laboratory (NUSAiL)",
+      dept: "School of Computing",
+      group: "NUS Artificial Intelligence Laboratory (NUSAiL)",
+      areas: ["Responsible AI","Reinforcement Learning","Biomedical & Health Informatics"],
+      officialProfile: {url:"https://www.comp.nus.edu.sg/cs/people/", label:"NUS Computing — official faculty directory", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "university-of-oxford": [
+    {
+      id: "oxford--yarin-gal",
+      name: "Yarin Gal",
+      position: "Professor of Machine Learning; Tutorial Fellow, Christ Church College",
+      dept: "Department of Computer Science",
+      group: "Oxford Applied and Theoretical Machine Learning Group (OATML)",
+      areas: ["Bayesian Deep Learning","Deep Reinforcement Learning","AI Safety"],
+      officialProfile: {url:"https://www.cs.ox.ac.uk/people/yarin.gal/", label:"Oxford Dept. of Computer Science — official faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://oatml.cs.ox.ac.uk/", label:"OATML — official research group site", status:"VERIFIED"},
+      email: "yarin@cs.ox.ac.uk",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "oxford--michael-wooldridge",
+      name: "Michael Wooldridge",
+      position: "Ashall Professor of the Foundations of Artificial Intelligence",
+      dept: "Department of Computer Science",
+      group: "Artificial Intelligence and Machine Learning",
+      areas: ["Multi-Agent Systems","Artificial Intelligence"],
+      officialProfile: {url:"https://www.cs.ox.ac.uk/people/michael.wooldridge/", label:"Oxford Dept. of Computer Science — official faculty page", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "oxford--michael-bronstein",
+      name: "Michael Bronstein",
+      position: "DeepMind Professor of AI",
+      dept: "Department of Computer Science",
+      group: "Artificial Intelligence and Machine Learning",
+      areas: ["Graph Learning","Geometric Deep Learning"],
+      officialProfile: {url:"https://www.cs.ox.ac.uk/people/michael.bronstein/", label:"Oxford Dept. of Computer Science — official faculty page", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "massachusetts-institute-of-technology": [
+    {
+      id: "mit--regina-barzilay",
+      name: "Regina Barzilay",
+      position: "School of Engineering Distinguished Professor for AI and Health",
+      dept: "Electrical Engineering and Computer Science (EECS)",
+      group: "CSAIL — Natural Language Processing / AI for Healthcare",
+      areas: ["Artificial Intelligence + Machine Learning","Natural Language and Speech Processing","AI for Healthcare and Life Sciences"],
+      officialProfile: {url:"https://www.eecs.mit.edu/role/faculty-cs/?fwp_research=artificial-intelligence-machine-learning", label:"MIT EECS official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://www.csail.mit.edu/research/natural-language-processing-group", label:"MIT CSAIL — NLP Group", status:"VERIFIED"},
+      email: "regina@csail.mit.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "mit--william-t-freeman",
+      name: "William T. Freeman",
+      position: "Thomas and Gerd Perkins Professor of EECS",
+      dept: "Electrical Engineering and Computer Science (EECS)",
+      group: "CSAIL — Graphics and Vision",
+      areas: ["Artificial Intelligence + Machine Learning","Graphics and Vision"],
+      officialProfile: {url:"https://www.eecs.mit.edu/role/faculty-cs/?fwp_research=artificial-intelligence-machine-learning", label:"MIT EECS official faculty directory", status:"VERIFIED"},
+      groupPage: null,
+      email: "billf@csail.mit.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "mit--marzyeh-ghassemi",
+      name: "Marzyeh Ghassemi",
+      position: "Germeshausen Career Development Associate Professor",
+      dept: "Electrical Engineering and Computer Science (EECS)",
+      group: "CSAIL — Clinical Machine Learning Group",
+      areas: ["Artificial Intelligence + Machine Learning","AI for Healthcare and Life Sciences"],
+      officialProfile: {url:"https://www.eecs.mit.edu/role/faculty-cs/?fwp_research=artificial-intelligence-machine-learning", label:"MIT EECS official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://www.csail.mit.edu/research/clinical-machine-learning-group", label:"MIT CSAIL — Clinical Machine Learning Group", status:"VERIFIED"},
+      email: "mghassem@mit.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "mit--daniela-rus",
+      name: "Daniela Rus",
+      position: "Director, MIT CSAIL",
+      dept: "Electrical Engineering and Computer Science (EECS)",
+      group: "CSAIL — Distributed Robotics Laboratory",
+      areas: ["Artificial Intelligence + Machine Learning","Robotics"],
+      officialProfile: {url:"https://www.csail.mit.edu/research", label:"MIT CSAIL — official lab site (Director listing)", status:"VERIFIED"},
+      groupPage: {url:"https://www.csail.mit.edu", label:"MIT CSAIL homepage", status:"VERIFIED"},
+      email: null,
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
   "eth-zurich": [
     {
       id: "eth-zurich--andreas-krause",
