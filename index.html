@@ -324,6 +324,298 @@ const COUNTRIES = [...new Set(SEED_UNIVERSITIES.map(u=>u.country))].sort();
 // Only ETH Zürich has seeded, source-linked professor records in this prototype.
 // Everything here is real and cited — nothing invented.
 const PROFESSORS = {
+  "tsinghua-university": [
+    {
+      id: "tsinghua--ting-chen",
+      name: "Ting Chen",
+      position: "Professor",
+      dept: "PhD & Master in Advanced Computing Program",
+      group: "Machine Learning / Computational Biology",
+      areas: ["Machine Learning","Computational Biology","Medical Informatics","Precision Medicine"],
+      officialProfile: {url:"https://ac.cs.tsinghua.edu.cn/faculty.html", label:"Tsinghua Advanced Computing Program — official faculty directory", status:"VERIFIED"},
+      groupPage: null,
+      email: "tingchen@tsinghua.edu.cn",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "university-of-toronto": [
+    {
+      id: "toronto--sheila-mcilraith",
+      name: "Sheila McIlraith",
+      position: "Professor; Canada CIFAR AI Chair (Vector Institute)",
+      dept: "Department of Computer Science",
+      group: "Vector Institute for Artificial Intelligence",
+      areas: ["Knowledge Representation","Automated Reasoning","Sequential Decision Making"],
+      officialProfile: {url:"https://web.cs.toronto.edu/news-events/news/news/u-of-t-vector-institute-woo-rising-stars-in-machine-learning-field", label:"University of Toronto CS Dept — official news/faculty listing", status:"VERIFIED"},
+      groupPage: {url:"https://www.cs.toronto.edu/~sheila/", label:"Official personal faculty page (cs.toronto.edu)", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "toronto--geoffrey-hinton",
+      name: "Geoffrey Hinton",
+      position: "University Professor Emeritus",
+      dept: "Department of Computer Science",
+      group: "Vector Institute for Artificial Intelligence (co-founder)",
+      areas: ["Deep Learning","Neural Networks","Machine Learning"],
+      officialProfile: {url:"https://www.utoronto.ca/news/six-u-t-researchers-join-vector-institute", label:"University of Toronto — official news listing", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "princeton-university": [
+    {
+      id: "princeton--sanjeev-arora",
+      name: "Sanjeev Arora",
+      position: "Charles C. Fitzmorris Professor of Computer Science; Director, Princeton Language and Intelligence",
+      dept: "Department of Computer Science",
+      group: "Princeton Language and Intelligence (PLI)",
+      areas: ["Theoretical Foundations of AI","Machine Learning","Deep Learning Theory"],
+      officialProfile: {url:"https://ai.princeton.edu/faculty", label:"AI at Princeton — official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://pli.princeton.edu/people/participating-faculty", label:"Princeton Language and Intelligence — official people page", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "princeton--danqi-chen",
+      name: "Danqi Chen",
+      position: "Assistant Professor of Computer Science",
+      dept: "Department of Computer Science",
+      group: "Princeton NLP Group",
+      areas: ["Natural Language Processing","Machine Learning"],
+      officialProfile: {url:"https://ai4all.princeton.edu/people", label:"Princeton AI4ALL — official faculty listing", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "peking-university": [
+    {
+      id: "peking--hao-dong",
+      name: "Hao Dong",
+      position: "Tenured Associate Professor",
+      dept: "School of Computer Science / Center for Frontiers in Computing Studies",
+      group: "Center for Frontiers in Computing Studies (CFCS)",
+      areas: ["Robot Learning","Embodied AI","Scaling Laws for Robotics"],
+      officialProfile: {url:"https://cfcs.pku.edu.cn/english/people/index.htm", label:"Peking University CFCS — official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://zsdonghao.github.io/", label:"Official personal faculty page", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "epfl": [
+    {
+      id: "epfl--antoine-bosselut",
+      name: "Antoine Bosselut",
+      position: "Assistant Professor",
+      dept: "School of Computer and Communication Sciences",
+      group: "EPFL NLP Group",
+      areas: ["Natural Language Processing","Large Language Models"],
+      officialProfile: {url:"https://ai.epfl.ch/about/faculty-members/", label:"EPFL AI Center — official faculty listing", status:"VERIFIED"},
+      groupPage: {url:"https://atcbosselut.github.io/", label:"Official personal faculty page (linked from EPFL)", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "university-of-california-los-angeles": [
+    {
+      id: "ucla--kai-wei-chang",
+      name: "Kai-Wei Chang",
+      position: "Associate Professor",
+      dept: "Department of Computer Science",
+      group: "UCLA Samueli — AI and Machine Learning",
+      areas: ["Natural Language Processing","Machine Learning"],
+      officialProfile: {url:"https://samueli.ucla.edu/people/kai-wei-chang/", label:"UCLA Samueli School of Engineering — official faculty page", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "ucla--adnan-darwiche",
+      name: "Adnan Darwiche",
+      position: "Professor of Computer Science",
+      dept: "Department of Computer Science",
+      group: "Probabilistic and logical reasoning lab",
+      areas: ["Machine Learning","Knowledge Representation and Reasoning","Probabilistic Reasoning"],
+      officialProfile: {url:"https://samueli.ucla.edu/big-data-artificial-intelligence-and-machine-learning/", label:"UCLA Samueli School of Engineering — official AI/ML page", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "new-york-university": [
+    {
+      id: "nyu--yann-lecun",
+      name: "Yann LeCun",
+      position: "Jacob T. Schwartz Chaired Professor in Computer Science",
+      dept: "Courant Institute of Mathematical Sciences",
+      group: "NYU AI",
+      areas: ["Machine Learning","Computer Vision","Autonomous Robotics"],
+      officialProfile: {url:"https://cs.nyu.edu/dynamic/people/faculty/area/Machine%20Learning/", label:"NYU Courant CS Dept — official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://cims.nyu.edu/ai/", label:"ai@NYU — official research page", status:"VERIFIED"},
+      email: "yann@cs.nyu.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "nyu--kyunghyun-cho",
+      name: "Kyunghyun Cho",
+      position: "Professor",
+      dept: "Courant Institute of Mathematical Sciences",
+      group: "NYU AI",
+      areas: ["Machine Learning","Natural Language Processing","Machine Translation"],
+      officialProfile: {url:"https://cims.nyu.edu/people/profiles/CHO_Kyunghyun.html", label:"NYU Courant — official faculty profile page", status:"VERIFIED"},
+      groupPage: null,
+      email: "kyunghyun.cho@nyu.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "cornell-university": [
+    {
+      id: "cornell--kilian-weinberger",
+      name: "Kilian Q. Weinberger",
+      position: "Professor",
+      dept: "Department of Computer Science",
+      group: "Machine Learning at Cornell",
+      areas: ["Machine Learning","Computer Vision","Deep Learning"],
+      officialProfile: {url:"https://www.cs.cornell.edu/people/faculty", label:"Cornell Bowers CIS — official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://www.cs.cornell.edu/~kilian/", label:"Official personal faculty page (cs.cornell.edu)", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "university-of-washington": [
+    {
+      id: "washington--luke-zettlemoyer",
+      name: "Luke Zettlemoyer",
+      position: "Professor",
+      dept: "Paul G. Allen School of Computer Science & Engineering",
+      group: "AI Faculty — Natural Language Processing",
+      areas: ["Natural Language Processing","Machine Learning","Large Language Models"],
+      officialProfile: {url:"https://www.cs.washington.edu/people/faculty/luke-zettlemoyer/", label:"Allen School — official faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://www.cs.washington.edu/research/artificial-intelligence/ai-faculty-members/", label:"Allen School AI faculty listing", status:"VERIFIED"},
+      email: "lsz@cs.washington.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "shanghai-jiao-tong-university": [
+    {
+      id: "sjtu--kai-yu",
+      name: "Kai Yu",
+      position: "Distinguished Professor",
+      dept: "Department of Computer Science and Engineering",
+      group: "X-LANCE Lab",
+      areas: ["Intelligent Speech and Language Processing","Human-Computer Interaction","Pattern Recognition","Machine Learning"],
+      officialProfile: {url:"https://x-lance.github.io/members/faculty/", label:"X-LANCE Lab (SJTU) — official faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://x-lance.github.io/", label:"X-LANCE Lab official site", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "nanyang-technological-university": [
+    {
+      id: "ntu--bo-an",
+      name: "Bo An",
+      position: "Professor; Co-Director, Artificial Intelligence Research Institute (AI.R)",
+      dept: "College of Computing & Data Science",
+      group: "Artificial Intelligence Research Institute (AI.R)",
+      areas: ["Machine Learning","Multi-Agent Systems","Reasoning and Decision-Making"],
+      officialProfile: {url:"https://www.ntu.edu.sg/computing/ai-at-ntu/ai-faculty", label:"NTU College of Computing and Data Science — official AI faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://www.ntu.edu.sg/ail/faculty-directory", label:"NTU Artificial Intelligence Laboratory (AIL) — faculty directory", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "ntu--chen-change-loy",
+      name: "Chen Change Loy",
+      position: "President's Chair Professor; Tan Lip-Bu Professor in Artificial Intelligence",
+      dept: "College of Computing & Data Science",
+      group: "MMLab@NTU",
+      areas: ["Computer Vision","Deep Learning","Generative AI"],
+      officialProfile: {url:"https://www.ntu.edu.sg/computing/our-faculty/faculty-at-ccds", label:"NTU College of Computing and Data Science — official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://www.mmlab-ntu.com/team.html", label:"MMLab@NTU — official research group site", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "harvard-university": [
+    {
+      id: "harvard--barbara-grosz",
+      name: "Barbara J. Grosz",
+      position: "Higgins Research Professor of Natural Sciences, Emerita",
+      dept: "Harvard John A. Paulson School of Engineering and Applied Sciences (SEAS)",
+      group: "Artificial Intelligence / Collaborative Planning and Human-Computer Communication",
+      areas: ["Artificial Intelligence","Natural Language Processing","Multi-Agent Collaboration"],
+      officialProfile: {url:"https://www.harvard.edu/ai/ai-at-harvard-faculty/", label:"Harvard — official AI-at-Harvard faculty listing", status:"VERIFIED"},
+      groupPage: {url:"https://grosz.seas.harvard.edu/", label:"Official personal faculty page (linked from Harvard SEAS)", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "harvard--boaz-barak",
+      name: "Boaz Barak",
+      position: "Catalyst Professor",
+      dept: "Harvard John A. Paulson School of Engineering and Applied Sciences (SEAS)",
+      group: "Harvard Machine Learning Foundations / Kempner Institute",
+      areas: ["Foundations of Machine Learning","AI Safety","Computational Complexity"],
+      officialProfile: {url:"https://www.harvard.edu/ai/ai-at-harvard-faculty/", label:"Harvard — official AI-at-Harvard faculty listing", status:"VERIFIED"},
+      groupPage: {url:"https://www.boazbarak.org/", label:"Official personal faculty page (linked from Harvard SEAS)", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "university-of-california-berkeley": [
+    {
+      id: "berkeley--pieter-abbeel",
+      name: "Pieter Abbeel",
+      position: "Professor, EECS; Co-Director, Berkeley AI Research (BAIR) Lab",
+      dept: "Electrical Engineering and Computer Sciences (EECS)",
+      group: "Berkeley AI Research (BAIR) Lab / Berkeley Robot Learning Lab",
+      areas: ["Artificial Intelligence","Robotics","Deep Reinforcement Learning"],
+      officialProfile: {url:"https://www2.eecs.berkeley.edu/Faculty/Lists/CS/faculty.html", label:"UC Berkeley EECS — official faculty directory", status:"VERIFIED"},
+      groupPage: {url:"https://people.eecs.berkeley.edu/~pabbeel/contact.html", label:"Official personal faculty page (eecs.berkeley.edu)", status:"VERIFIED"},
+      email: "pabbeel@cs.berkeley.edu",
+      scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "berkeley--stuart-russell",
+      name: "Stuart J. Russell",
+      position: "Professor, EECS; Michael H. Smith and Lotfi A. Zadeh Chair in Engineering",
+      dept: "Electrical Engineering and Computer Sciences (EECS)",
+      group: "Center for Human-Compatible Artificial Intelligence (CHAI)",
+      areas: ["Artificial Intelligence","Machine Learning","AI Safety"],
+      officialProfile: {url:"https://vcresearch.berkeley.edu/faculty/stuart-russell", label:"UC Berkeley Vice Chancellor for Research — official faculty profile", status:"VERIFIED"},
+      groupPage: {url:"https://humancompatible.ai/people/", label:"Center for Human-Compatible AI — official people page", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
+  "university-of-cambridge": [
+    {
+      id: "cambridge--neil-lawrence",
+      name: "Neil Lawrence",
+      position: "DeepMind Professor of Machine Learning",
+      dept: "Department of Computer Science and Technology",
+      group: "Machine Learning Group",
+      areas: ["Machine Learning","Probabilistic Models","Computational Biology"],
+      officialProfile: {url:"https://www.cst.cam.ac.uk/people/ndl21", label:"Cambridge Dept. of Computer Science and Technology — official faculty page", status:"VERIFIED"},
+      groupPage: {url:"https://www.cst.cam.ac.uk/news/deepmind-professor", label:"Official department announcement", status:"VERIFIED"},
+      email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    },
+    {
+      id: "cambridge--pietro-lio",
+      name: "Pietro Liò",
+      position: "Professor",
+      dept: "Department of Computer Science and Technology",
+      group: "Artificial Intelligence Group",
+      areas: ["Graph Neural Networks","Machine Learning","Computational Biology"],
+      officialProfile: {url:"https://www.cst.cam.ac.uk/people/pl219", label:"Cambridge Dept. of Computer Science and Technology — official faculty page", status:"VERIFIED"},
+      groupPage: null, email: null, scholar: null, orcid: null, github: null, linkedin: null,
+      publications: [], projects: []
+    }
+  ],
   "stanford-university": [
     {
       id: "stanford--fei-fei-li",
