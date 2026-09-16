@@ -548,6 +548,11 @@ const SEED_UNIVERSITIES = [
   [350,"Indian Institute of Technology Guwahati","India","Guwahati","https://www.iitg.ac.in/","QS_OVERALL_2027"],
 ].map(r => ({rank:r[0], name:r[1], country:r[2], city:r[3], website:r[4]||null, rankSystem:r[5]||"CS_IS_2025", id: slugify(r[1])}));
 
+// No artificial ceiling on how many universities/ranks this app can hold — this is derived from
+// whatever is actually seeded, so it grows automatically as more real, verified universities are
+// added (rank 5,000, 10,000, or beyond all work the same way, with no fixed cap to raise later).
+const MAX_SEEDED_RANK = Math.max(...SEED_UNIVERSITIES.map(u => u.rank));
+
 function slugify(s){
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"") // strip accents: è→e, ó→o, á→a...
     .toLowerCase().replace(/\(.*?\)/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
@@ -1474,7 +1479,7 @@ function linkOrNA(obj, label){
 function renderStepper(){
   const steps = [
     ["Country", state.filters.country],
-    ["Ranking", state.filters.rankingRange==='custom' ? `${state.filters.customMin}–${state.filters.customMax}` : state.filters.rankingRange.replace("-","–")],
+    ["Ranking", state.filters.rankingRange==='custom' ? `${state.filters.customMin}–${state.filters.customMax}` : state.filters.rankingRange.replace("-Infinity","+").replace("-","–")],
     ["Domain", Object.values(TAXONOMY).flat().find(d=>d.id===state.filters.domain)?.name.split(" (")[0] || "—"],
     ["University", state.selectedUniversity ? state.selectedUniversity.name.split(" ").slice(0,3).join(" ") : "—"],
     ["Professor", state.selectedProfessor ? state.selectedProfessor.name : "—"]
@@ -1558,7 +1563,7 @@ const RANKING_BANDS = [
   { label:"World Ranking 501–750", min:501, max:750 },
   { label:"World Ranking 751–1000", min:751, max:1000 },
   { label:"World Ranking 1001–1500", min:1001, max:1500 },
-  { label:"World Ranking 1501+", min:1501, max:3000 }
+  { label:"World Ranking 1501+", min:1501, max:Infinity }
 ];
 
 function getRangeBounds(){
@@ -1569,6 +1574,11 @@ function getRangeBounds(){
 
 function renderUniversityList(){
   const [min,max] = getRangeBounds();
+  // Never actually loop up to Infinity — cap placeholder generation at the highest rank that
+  // really exists in the data. Any real university above that cap can't exist yet anyway, and
+  // as more universities get added, MAX_SEEDED_RANK grows with them automatically.
+  const loopMax = Math.min(max, MAX_SEEDED_RANK);
+  const rangeLabel = max===Infinity ? `${min}+` : `${min}–${max}`;
   let rows = [];
   if(state.filters.country !== "All"){
     // Country filter: only show verified seeded matches — never claim a false total for the country.
@@ -1578,7 +1588,7 @@ function renderUniversityList(){
     // filling any rank with no ingested record as an explicit pending row instead of guessing.
     const byRank = {};
     SEED_UNIVERSITIES.forEach(u=>{ (byRank[u.rank] = byRank[u.rank]||[]).push(u); });
-    for(let r=min; r<=max; r++){
+    for(let r=min; r<=loopMax; r++){
       if(byRank[r]) byRank[r].forEach(u=>rows.push(u));
       else rows.push({rank:r, pending:true});
     }
@@ -1590,7 +1600,7 @@ function renderUniversityList(){
 
   return `
     <div class="results-head">
-      <h2>Universities · Rank ${min}–${max} ${state.filters.country!=='All' ? '· '+state.filters.country : ''}</h2>
+      <h2>Universities · Rank ${rangeLabel} ${state.filters.country!=='All' ? '· '+state.filters.country : ''}</h2>
       <div class="count">${rows.length} rank slot${rows.length!==1?'s':''} in range — ${verifiedCount} verified record${verifiedCount!==1?'s':''}${state.filters.country==='All' ? ', ' + (rows.length-verifiedCount) + ' pending ingestion' : ''}</div>
       ${max>100 ? `<p class="note" style="margin-top:6px">Ranks 1–100 use the QS CS &amp; Information Systems subject ranking (2025). Ranks 102+ use the QS Overall/General World Ranking (2027) instead, since a verified subject-rank list beyond 100 isn't available yet — the two are not comparable. Each row below is labeled.</p>` : ''}
     </div>
