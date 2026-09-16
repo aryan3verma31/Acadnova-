@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AcadNova — Global Academic & Research Discovery</title>
-<meta name="description" content="Browse verified foreign universities, rankings, and AI/ML & engineering research areas, then message professors directly. India and China are excluded from this discovery database by design.">
+<meta name="description" content="Browse verified foreign universities, rankings, and AI/ML & engineering research areas, then message professors directly.">
 <meta property="og:title" content="AcadNova — Global Academic & Research Discovery">
 <meta property="og:description" content="Verified university rankings, professor discovery, and direct outreach for Master's/PhD applicants.">
 <meta property="og:type" content="website">
@@ -207,10 +207,20 @@ const RANKING_SOURCE = {
   status: "VERIFIED"
 };
 
-// [rank, name, country, city] — Source: QS World University Rankings by Subject 2025,
+// Two different QS methodologies are represented in SEED_UNIVERSITIES — never treat their
+// rank numbers as comparable. Ranks 1-100 are the CS & IS SUBJECT ranking; ranks 102+ (added
+// later) are the OVERALL/general QS World University Ranking 2027, since a verified CS & IS
+// subject-rank list for 101+ was not available at ingestion time. Every row carries an
+// explicit rankSystem key so the UI always labels which system a given rank belongs to.
+const RANK_SYSTEM_LABELS = {
+  CS_IS_2025: { short:"QS CS & IS (2025)", full:"QS World University Rankings by Subject 2025 — Computer Science and Information Systems" },
+  QS_OVERALL_2027: { short:"QS Overall (2027)", full:"QS World University Rankings 2027 — Overall/General Ranking (not subject-specific)" }
+};
+
+// [rank, name, country, city, website, rankSystem] — Source: QS World University Rankings by Subject 2025,
 // Computer Science and Information Systems (published 12 Mar 2025). Full rank 1–100 list,
-// cross-checked against the official QS/TopUniversities release. India intentionally
-// excluded per product rule (§17/§55); tie ranks ("=") keep the same rank number.
+// cross-checked against the official QS/TopUniversities release. Tie ranks ("=") keep the same rank number.
+// (India was originally excluded per product rule §17/§55; policy changed — India universities are now included.)
 const SEED_UNIVERSITIES = [
   [1,"Massachusetts Institute of Technology (MIT)","United States","Cambridge, MA","https://www.mit.edu/"],
   [2,"Stanford University","United States","Stanford, CA","https://www.stanford.edu/"],
@@ -310,14 +320,240 @@ const SEED_UNIVERSITIES = [
   [98,"University of Queensland","Australia","Brisbane","https://www.uq.edu.au/"],
   [99,"King Saud University","Saudi Arabia","Riyadh","https://ksu.edu.sa/en/"],
   [100,"Kyoto University","Japan","Kyoto","https://www.kyoto-u.ac.jp/en"],
-].map(r => ({rank:r[0], name:r[1], country:r[2], city:r[3], website:r[4]||null, id: slugify(r[1])}));
+
+  // ===== Ranks 102+ — QS World University Rankings 2027 (OVERALL, not CS & IS subject) =====
+  // 16 rows from the source table were skipped as duplicates of universities already seeded
+  // above under the CS & IS subject ranking (Queen Mary, POSTECH, King Saud, Sapienza,
+  // Lomonosov Moscow State, Bologna, São Paulo, TU Berlin, Wuhan, Tecnológico de Monterrey,
+  // Harbin IT, TU Wien, King Abdulaziz, University of Waterloo, Georgia Institute of
+  // Technology, University of Southern California) — each already has a verified subject-rank
+  // entry above.
+  [102,"Tohoku University","Japan","Sendai","https://www.tohoku.ac.jp/en/","QS_OVERALL_2027"],
+  [104,"RWTH Aachen University","Germany","Aachen","https://www.rwth-aachen.de/","QS_OVERALL_2027"],
+  [105,"Technical University of Denmark (DTU)","Denmark","Kongens Lyngby","https://www.dtu.dk/english","QS_OVERALL_2027"],
+  [108,"Sungkyunkwan University","South Korea","Seoul","https://www.skku.edu/eng/","QS_OVERALL_2027"],
+  [109,"Qatar University","Qatar","Doha","https://www.qu.edu.qa/","QS_OVERALL_2027"],
+  [110,"Karlsruhe Institute of Technology (KIT)","Germany","Karlsruhe","https://www.kit.edu/english/","QS_OVERALL_2027"],
+  [111,"University of Southampton","United Kingdom","Southampton","https://www.southampton.ac.uk/","QS_OVERALL_2027"],
+  [113,"Utrecht University","Netherlands","Utrecht","https://www.uu.nl/en","QS_OVERALL_2027"],
+  [115,"University of St Andrews","United Kingdom","St Andrews","https://www.st-andrews.ac.uk/","QS_OVERALL_2027"],
+  [119,"Leiden University","Netherlands","Leiden","https://www.universiteitleiden.nl/en","QS_OVERALL_2027"],
+  [119,"Pontificia Universidad Católica de Chile","Chile","Santiago","https://www.uc.cl/en/","QS_OVERALL_2027"],
+  [119,"RMIT University","Australia","Melbourne","https://www.rmit.edu.au/","QS_OVERALL_2027"],
+  [122,"Rice University","United States","Houston, TX","https://www.rice.edu/","QS_OVERALL_2027"],
+  [123,"University of Helsinki","Finland","Helsinki","https://www.helsinki.fi/en","QS_OVERALL_2027"],
+  [125,"University of Bath","United Kingdom","Bath","https://www.bath.ac.uk/","QS_OVERALL_2027"],
+  [126,"Aalto University","Finland","Espoo","https://www.aalto.fi/en","QS_OVERALL_2027"],
+  [126,"Macquarie University","Australia","Sydney","https://www.mq.edu.au/","QS_OVERALL_2027"],
+  [128,"Aarhus University","Denmark","Aarhus","https://international.au.dk/","QS_OVERALL_2027"],
+  [128,"Universiti Sains Malaysia","Malaysia","Penang","https://www.usm.my/","QS_OVERALL_2027"],
+  [130,"Universiti Kebangsaan Malaysia","Malaysia","Bangi","https://www.ukm.my/portalweb/","QS_OVERALL_2027"],
+  [131,"University of Oslo","Norway","Oslo","https://www.uio.no/english/","QS_OVERALL_2027"],
+  [131,"University of Wisconsin–Madison","United States","Madison, WI","https://www.wisc.edu/","QS_OVERALL_2027"],
+  [136,"University of Exeter","United Kingdom","Exeter","https://www.exeter.ac.uk/","QS_OVERALL_2027"],
+  [137,"University of California, Davis","United States","Davis, CA","https://www.ucdavis.edu/","QS_OVERALL_2027"],
+  [138,"Universiti Putra Malaysia","Malaysia","Serdang","https://www.upm.edu.my/","QS_OVERALL_2027"],
+  [139,"University of Liverpool","United Kingdom","Liverpool","https://www.liverpool.ac.uk/","QS_OVERALL_2027"],
+  [140,"Humboldt-Universität zu Berlin","Germany","Berlin","https://www.hu-berlin.de/en","QS_OVERALL_2027"],
+  [140,"University of Vienna","Austria","Vienna","https://www.univie.ac.at/en/","QS_OVERALL_2027"],
+  [142,"National Tsing Hua University","Taiwan","Hsinchu","https://www.nthu.edu.tw/english/","QS_OVERALL_2027"],
+  [142,"Western University","Canada","London, ON","https://www.uwo.ca/","QS_OVERALL_2027"],
+  [145,"Universidad Nacional Autónoma de México (UNAM)","Mexico","Mexico City","https://www.unam.mx/","QS_OVERALL_2027"],
+  [146,"Tongji University","China","Shanghai","https://en.tongji.edu.cn/","QS_OVERALL_2027"],
+  [147,"Khalifa University","United Arab Emirates","Abu Dhabi","https://www.ku.ac.ae/","QS_OVERALL_2027"],
+  [148,"Erasmus University Rotterdam","Netherlands","Rotterdam","https://www.eur.nl/en","QS_OVERALL_2027"],
+  [149,"Newcastle University","United Kingdom","Newcastle upon Tyne","https://www.ncl.ac.uk/","QS_OVERALL_2027"],
+  [150,"Ghent University","Belgium","Ghent","https://www.ugent.be/en","QS_OVERALL_2027"],
+  [150,"University of Basel","Switzerland","Basel","https://www.unibas.ch/en.html","QS_OVERALL_2027"],
+  [152,"Eindhoven University of Technology","Netherlands","Eindhoven","https://www.tue.nl/en/","QS_OVERALL_2027"],
+  [154,"Wageningen University & Research","Netherlands","Wageningen","https://www.wur.nl/en.htm","QS_OVERALL_2027"],
+  [155,"Hanyang University","South Korea","Seoul","https://www.hanyang.ac.kr/web/eng","QS_OVERALL_2027"],
+  [156,"Nagoya University","Japan","Nagoya","https://www.nagoya-u.ac.jp/en/","QS_OVERALL_2027"],
+  [157,"University of Groningen","Netherlands","Groningen","https://www.rug.nl/education/international-students/","QS_OVERALL_2027"],
+  [158,"Universiti Teknologi Malaysia","Malaysia","Johor Bahru","https://www.utm.my/","QS_OVERALL_2027"],
+  [158,"University of North Carolina at Chapel Hill","United States","Chapel Hill, NC","https://www.unc.edu/","QS_OVERALL_2027"],
+  [158,"University of York","United Kingdom","York","https://www.york.ac.uk/","QS_OVERALL_2027"],
+  [162,"Washington University in St. Louis","United States","St. Louis, MO","https://wustl.edu/","QS_OVERALL_2027"],
+  [164,"Lancaster University","United Kingdom","Lancaster","https://www.lancaster.ac.uk/","QS_OVERALL_2027"],
+  [165,"Universitat de Barcelona","Spain","Barcelona","https://www.ub.edu/web/portal/en/","QS_OVERALL_2027"],
+  [167,"Stockholm University","Sweden","Stockholm","https://www.su.se/english/","QS_OVERALL_2027"],
+  [168,"University of Geneva","Switzerland","Geneva","https://www.unige.ch/international/en/","QS_OVERALL_2027"],
+  [169,"Texas A&M University","United States","College Station, TX","https://www.tamu.edu/","QS_OVERALL_2027"],
+  [171,"Kyushu University","Japan","Fukuoka","https://www.kyushu-u.ac.jp/en/","QS_OVERALL_2027"],
+  [172,"Arizona State University","United States","Tempe, AZ","https://www.asu.edu/","QS_OVERALL_2027"],
+  [173,"University of California, Santa Barbara","United States","Santa Barbara, CA","https://www.ucsb.edu/","QS_OVERALL_2027"],
+  [174,"Chalmers University of Technology","Sweden","Gothenburg","https://www.chalmers.se/en/","QS_OVERALL_2027"],
+  [174,"McMaster University","Canada","Hamilton, ON","https://www.mcmaster.ca/","QS_OVERALL_2027"],
+  [174,"Queen's University Belfast","United Kingdom","Belfast","https://www.qub.ac.uk/","QS_OVERALL_2027"],
+  [177,"Al-Farabi Kazakh National University","Kazakhstan","Almaty","https://farabi.university/","QS_OVERALL_2027"],
+  [177,"National Yang Ming Chiao Tung University","Taiwan","Hsinchu","https://www.nycu.edu.tw/","QS_OVERALL_2027"],
+  [179,"Cardiff University","United Kingdom","Cardiff","https://www.cardiff.ac.uk/","QS_OVERALL_2027"],
+  [179,"Hokkaido University","Japan","Sapporo","https://www.global.hokudai.ac.jp/","QS_OVERALL_2027"],
+  [179,"Queen's University at Kingston","Canada","Kingston, ON","https://www.queensu.ca/","QS_OVERALL_2027"],
+  [182,"Michigan State University","United States","East Lansing, MI","https://msu.edu/","QS_OVERALL_2027"],
+  [183,"Emory University","United States","Atlanta, GA","https://www.emory.edu/","QS_OVERALL_2027"],
+  [184,"University of Cape Town","South Africa","Cape Town","https://www.uct.ac.za/","QS_OVERALL_2027"],
+  [185,"TU Dresden","Germany","Dresden","https://tu-dresden.de/","QS_OVERALL_2027"],
+  [185,"Universidad de Chile","Chile","Santiago","https://uchile.cl/english","QS_OVERALL_2027"],
+  [185,"Vrije Universiteit Amsterdam","Netherlands","Amsterdam","https://vu.nl/en","QS_OVERALL_2027"],
+  [189,"Curtin University","Australia","Perth","https://www.curtin.edu.au/","QS_OVERALL_2027"],
+  [191,"National Cheng Kung University","Taiwan","Tainan","https://web.ncku.edu.tw/p/412-1000-168.php?Lang=en","QS_OVERALL_2027"],
+  [191,"Universitas Indonesia","Indonesia","Depok","https://www.ui.ac.id/en/","QS_OVERALL_2027"],
+  [191,"University of Bern","Switzerland","Bern","https://www.unibe.ch/index_eng.html","QS_OVERALL_2027"],
+  [195,"University of Wollongong","Australia","Wollongong","https://www.uow.edu.au/","QS_OVERALL_2027"],
+  [196,"UCLouvain","Belgium","Louvain-la-Neuve","https://uclouvain.be/en/index.html","QS_OVERALL_2027"],
+  [196,"University of Reading","United Kingdom","Reading","https://www.reading.ac.uk/","QS_OVERALL_2027"],
+  [198,"University of Otago","New Zealand","Dunedin","https://www.otago.ac.nz/","QS_OVERALL_2027"],
+  [199,"Complutense University of Madrid","Spain","Madrid","https://www.ucm.es/english","QS_OVERALL_2027"],
+  [201,"The Ohio State University","United States","Columbus, OH","https://www.osu.edu/","QS_OVERALL_2027"],
+  [201,"Waseda University","Japan","Tokyo","https://www.waseda.jp/top/en","QS_OVERALL_2027"],
+  [203,"Loughborough University","United Kingdom","Loughborough","https://www.lboro.ac.uk/","QS_OVERALL_2027"],
+  [204,"University of Padova","Italy","Padua","https://www.unipd.it/en/","QS_OVERALL_2027"],
+  [206,"Gadjah Mada University","Indonesia","Yogyakarta","https://ugm.ac.id/en/","QS_OVERALL_2027"],
+  [206,"Politecnico di Torino","Italy","Turin","https://www.polito.it/en","QS_OVERALL_2027"],
+  [208,"Tel Aviv University","Israel","Tel Aviv","https://english.tau.ac.il/","QS_OVERALL_2027"],
+  [209,"University of Bonn","Germany","Bonn","https://www.uni-bonn.de/en","QS_OVERALL_2027"],
+  [209,"University of Hamburg","Germany","Hamburg","https://www.uni-hamburg.de/en.html","QS_OVERALL_2027"],
+  [211,"Autonomous University of Barcelona","Spain","Barcelona","https://www.uab.cat/en/","QS_OVERALL_2027"],
+  [212,"Chulalongkorn University","Thailand","Bangkok","https://www.chula.ac.th/en/","QS_OVERALL_2027"],
+  [213,"Hamad Bin Khalifa University","Qatar","Doha","https://www.hbku.edu.qa/en","QS_OVERALL_2027"],
+  [213,"Keio University","Japan","Tokyo","https://www.keio.ac.jp/en/","QS_OVERALL_2027"],
+  [215,"Massey University","New Zealand","Palmerston North","https://www.massey.ac.nz/","QS_OVERALL_2027"],
+  [216,"Hong Kong Baptist University","Hong Kong SAR China","Hong Kong","https://www.hkbu.edu.hk/","QS_OVERALL_2027"],
+  [217,"United Arab Emirates University","United Arab Emirates","Al Ain","https://www.uaeu.ac.ae/en/","QS_OVERALL_2027"],
+  [218,"Friedrich-Alexander University Erlangen-Nürnberg","Germany","Erlangen","https://www.fau.eu/","QS_OVERALL_2027"],
+  [218,"Hebrew University of Jerusalem","Israel","Jerusalem","https://en.huji.ac.il/","QS_OVERALL_2027"],
+  [220,"University College Cork","Ireland","Cork","https://www.ucc.ie/en/","QS_OVERALL_2027"],
+  [223,"American University of Beirut","Lebanon","Beirut","https://www.aub.edu.lb/","QS_OVERALL_2027"],
+  [223,"University of Twente","Netherlands","Enschede","https://www.utwente.nl/en/","QS_OVERALL_2027"],
+  [225,"University of Gothenburg","Sweden","Gothenburg","https://www.gu.se/en","QS_OVERALL_2027"],
+  [226,"Autonomous University of Madrid","Spain","Madrid","https://www.uam.es/uam/en","QS_OVERALL_2027"],
+  [227,"Deakin University","Australia","Geelong","https://www.deakin.edu.au/","QS_OVERALL_2027"],
+  [228,"University of Florida","United States","Gainesville, FL","https://www.ufl.edu/","QS_OVERALL_2027"],
+  [228,"University of Ottawa","Canada","Ottawa, ON","https://www.uottawa.ca/en","QS_OVERALL_2027"],
+  [230,"University of Tübingen","Germany","Tübingen","https://uni-tuebingen.de/en/","QS_OVERALL_2027"],
+  [230,"Griffith University","Australia","Brisbane","https://www.griffith.edu.au/","QS_OVERALL_2027"],
+  [230,"University of Strathclyde","United Kingdom","Glasgow","https://www.strath.ac.uk/","QS_OVERALL_2027"],
+  [233,"University of the Andes","Colombia","Bogotá","https://uniandes.edu.co/en","QS_OVERALL_2027"],
+  [233,"University of Lausanne","Switzerland","Lausanne","https://www.unil.ch/central/en/home.html","QS_OVERALL_2027"],
+  [235,"ENS de Lyon","France","Lyon","https://www.ens-lyon.fr/en","QS_OVERALL_2027"],
+  [235,"Tianjin University","China","Tianjin","https://www.tju.edu.cn/english/","QS_OVERALL_2027"],
+  [237,"Beijing Normal University","China","Beijing","https://english.bnu.edu.cn/","QS_OVERALL_2027"],
+  [237,"University of Lisbon","Portugal","Lisbon","https://www.ulisboa.pt/en","QS_OVERALL_2027"],
+  [239,"Central European University","Austria","Vienna","https://www.ceu.edu/","QS_OVERALL_2027"],
+  [240,"Queensland University of Technology","Australia","Brisbane","https://www.qut.edu.au/","QS_OVERALL_2027"],
+  [241,"La Trobe University","Australia","Melbourne","https://www.latrobe.edu.au/","QS_OVERALL_2027"],
+  [241,"Victoria University of Wellington","New Zealand","Wellington","https://www.wgtn.ac.nz/","QS_OVERALL_2027"],
+  [244,"University of Newcastle, Australia","Australia","Newcastle","https://www.newcastle.edu.au/","QS_OVERALL_2027"],
+  [245,"University of Freiburg","Germany","Freiburg","https://uni-freiburg.de/en/","QS_OVERALL_2027"],
+  [246,"Paris 1 Panthéon-Sorbonne University","France","Paris","https://www.pantheonsorbonne.fr/en","QS_OVERALL_2027"],
+  [246,"University of Surrey","United Kingdom","Guildford","https://www.surrey.ac.uk/","QS_OVERALL_2027"],
+  [248,"Université libre de Bruxelles","Belgium","Brussels","https://www.ulb.be/en","QS_OVERALL_2027"],
+  [249,"University of Calgary","Canada","Calgary, AB","https://www.ucalgary.ca/","QS_OVERALL_2027"],
+  [250,"Technical University of Darmstadt","Germany","Darmstadt","https://www.tu-darmstadt.de/english/","QS_OVERALL_2027"],
+  [251,"University of Rochester","United States","Rochester, NY","https://www.rochester.edu/","QS_OVERALL_2027"],
+  [252,"University of California, Irvine","United States","Irvine, CA","https://uci.edu/","QS_OVERALL_2027"],
+  [254,"Maastricht University","Netherlands","Maastricht","https://www.maastrichtuniversity.nl/","QS_OVERALL_2027"],
+  [255,"University of Minnesota","United States","Minneapolis, MN","https://twin-cities.umn.edu/","QS_OVERALL_2027"],
+  [255,"University of Porto","Portugal","Porto","https://www.up.pt/portal/en/","QS_OVERALL_2027"],
+  [257,"University of Canterbury","New Zealand","Christchurch","https://www.canterbury.ac.nz/","QS_OVERALL_2027"],
+  [258,"American University of Sharjah","United Arab Emirates","Sharjah","https://www.aus.edu/","QS_OVERALL_2027"],
+  [258,"Sun Yat-sen University","China","Guangzhou","https://en.sysu.edu.cn/","QS_OVERALL_2027"],
+  [260,"University of Massachusetts Amherst","United States","Amherst, MA","https://www.umass.edu/","QS_OVERALL_2027"],
+  [261,"Universiti Teknologi PETRONAS","Malaysia","Seri Iskandar","https://www.utp.edu.my/","QS_OVERALL_2027"],
+  [261,"University of Göttingen","Germany","Göttingen","https://uni-goettingen.de/en","QS_OVERALL_2027"],
+  [263,"Universitat Pompeu Fabra","Spain","Barcelona","https://www.upf.edu/en/","QS_OVERALL_2027"],
+  [264,"Norwegian University of Science and Technology","Norway","Trondheim","https://www.ntnu.edu/","QS_OVERALL_2027"],
+  [265,"Vanderbilt University","United States","Nashville, TN","https://www.vanderbilt.edu/","QS_OVERALL_2027"],
+  [266,"Singapore University of Technology and Design","Singapore","Singapore","https://www.sutd.edu.sg/","QS_OVERALL_2027"],
+  [267,"University of Macau","Macau SAR China","Macau","https://www.um.edu.mo/","QS_OVERALL_2027"],
+  [268,"University of Virginia","United States","Charlottesville, VA","https://www.virginia.edu/","QS_OVERALL_2027"],
+  [269,"University of Cologne","Germany","Cologne","https://www.uni-koeln.de/en/","QS_OVERALL_2027"],
+  [270,"Dartmouth College","United States","Hanover, NH","https://home.dartmouth.edu/","QS_OVERALL_2027"],
+  [270,"University of Milan","Italy","Milan","https://www.unimi.it/en","QS_OVERALL_2027"],
+  [272,"Taylor's University","Malaysia","Subang Jaya","https://university.taylors.edu.my/","QS_OVERALL_2027"],
+  [273,"Charles University","Czechia","Prague","https://cuni.cz/UKEN-1.html","QS_OVERALL_2027"],
+  [273,"University of Sussex","United Kingdom","Brighton","https://www.sussex.ac.uk/","QS_OVERALL_2027"],
+  [275,"University of Galway","Ireland","Galway","https://www.universityofgalway.ie/","QS_OVERALL_2027"],
+  [276,"Universitas Airlangga","Indonesia","Surabaya","https://www.unair.ac.id/en/","QS_OVERALL_2027"],
+  [277,"University of Campinas (UNICAMP)","Brazil","Campinas","https://www.unicamp.br/unicamp/english","QS_OVERALL_2027"],
+  [278,"University of Antwerp","Belgium","Antwerp","https://www.uantwerpen.be/en/","QS_OVERALL_2027"],
+  [279,"Istanbul Technical University","Türkiye","Istanbul","https://www.itu.edu.tr/en","QS_OVERALL_2027"],
+  [282,"UCSI University","Malaysia","Kuala Lumpur","https://www.ucsiuniversity.edu.my/","QS_OVERALL_2027"],
+  [283,"Radboud University","Netherlands","Nijmegen","https://www.ru.nl/en","QS_OVERALL_2027"],
+  [283,"University of Bergen","Norway","Bergen","https://www.uib.no/en","QS_OVERALL_2027"],
+  [283,"University of Sharjah","United Arab Emirates","Sharjah","https://www.sharjah.ac.ae/en","QS_OVERALL_2027"],
+  [283,"University of Southern Denmark","Denmark","Odense","https://www.sdu.dk/en","QS_OVERALL_2027"],
+  [287,"Institut Teknologi Bandung","Indonesia","Bandung","https://www.itb.ac.id/en","QS_OVERALL_2027"],
+  [288,"University of Aberdeen","United Kingdom","Aberdeen","https://www.abdn.ac.uk/","QS_OVERALL_2027"],
+  [289,"Georgetown University","United States","Washington, DC","https://www.georgetown.edu/","QS_OVERALL_2027"],
+  [289,"University of Warsaw","Poland","Warsaw","https://en.uw.edu.pl/","QS_OVERALL_2027"],
+  [291,"Swinburne University of Technology","Australia","Melbourne","https://www.swinburne.edu.au/","QS_OVERALL_2027"],
+  [292,"University of Johannesburg","South Africa","Johannesburg","https://www.uj.ac.za/","QS_OVERALL_2027"],
+  [293,"National University of Colombia","Colombia","Bogotá","https://unal.edu.co/","QS_OVERALL_2027"],
+  [293,"University of Waikato","New Zealand","Hamilton","https://www.waikato.ac.nz/","QS_OVERALL_2027"],
+  [295,"Vrije Universiteit Brussel","Belgium","Brussels","https://www.vub.be/en","QS_OVERALL_2027"],
+  [296,"Stellenbosch University","South Africa","Stellenbosch","https://www.sun.ac.za/english","QS_OVERALL_2027"],
+  [298,"Dalhousie University","Canada","Halifax, NS","https://www.dal.ca/","QS_OVERALL_2027"],
+  [299,"Ulsan National Institute of Science and Technology (UNIST)","South Korea","Ulsan","https://www.unist.ac.kr/en/","QS_OVERALL_2027"],
+  [300,"Sichuan University","China","Chengdu","https://en.scu.edu.cn/","QS_OVERALL_2027"],
+  [300,"University of Notre Dame","United States","Notre Dame, IN","https://www.nd.edu/","QS_OVERALL_2027"],
+  [302,"University of the Witwatersrand","South Africa","Johannesburg","https://www.wits.ac.za/","QS_OVERALL_2027"],
+  [303,"Université Paris Cité","France","Paris","https://u-paris.fr/en/","QS_OVERALL_2027"],
+  [304,"Xiamen University","China","Xiamen","https://en.xmu.edu.cn/","QS_OVERALL_2027"],
+  [305,"Middle East Technical University","Türkiye","Ankara","https://www.metu.edu.tr/","QS_OVERALL_2027"],
+  [306,"Sultan Qaboos University","Oman","Muscat","https://www.squ.edu.om/","QS_OVERALL_2027"],
+  [308,"Linköping University","Sweden","Linköping","https://liu.se/en","QS_OVERALL_2027"],
+  [309,"Kyung Hee University","South Korea","Seoul","https://www.khu.ac.kr/eng/","QS_OVERALL_2027"],
+  [310,"Shandong University","China","Jinan","https://www.en.sdu.edu.cn/","QS_OVERALL_2027"],
+  [311,"University of Tasmania","Australia","Hobart","https://www.utas.edu.au/","QS_OVERALL_2027"],
+  [312,"Simon Fraser University","Canada","Burnaby, BC","https://www.sfu.ca/","QS_OVERALL_2027"],
+  [313,"University of Arizona","United States","Tucson, AZ","https://www.arizona.edu/","QS_OVERALL_2027"],
+  [314,"Rutgers University–New Brunswick","United States","New Brunswick, NJ","https://www.rutgers.edu/","QS_OVERALL_2027"],
+  [315,"Universidad Carlos III de Madrid","Spain","Madrid","https://www.uc3m.es/Home","QS_OVERALL_2027"],
+  [316,"University of Leicester","United Kingdom","Leicester","https://le.ac.uk/","QS_OVERALL_2027"],
+  [317,"Southern University of Science and Technology","China","Shenzhen","https://www.sustech.edu.cn/en/","QS_OVERALL_2027"],
+  [318,"Bauman Moscow State Technical University","Russia","Moscow","https://www.bmstu.ru/en","QS_OVERALL_2027"],
+  [319,"Universität Stuttgart","Germany","Stuttgart","https://www.uni-stuttgart.de/en/","QS_OVERALL_2027"],
+  [320,"North Carolina State University","United States","Raleigh, NC","https://www.ncsu.edu/","QS_OVERALL_2027"],
+  [320,"University of Colorado Boulder","United States","Boulder, CO","https://www.colorado.edu/","QS_OVERALL_2027"],
+  [322,"Swansea University","United Kingdom","Swansea","https://www.swansea.ac.uk/","QS_OVERALL_2027"],
+  [324,"York University","Canada","Toronto, ON","https://www.yorku.ca/","QS_OVERALL_2027"],
+  [325,"Heriot-Watt University","United Kingdom","Edinburgh","https://www.hw.ac.uk/","QS_OVERALL_2027"],
+  [326,"Case Western Reserve University","United States","Cleveland, OH","https://case.edu/","QS_OVERALL_2027"],
+  [326,"University of Jordan","Jordan","Amman","https://www.ju.edu.jo/en","QS_OVERALL_2027"],
+  [328,"University of Pretoria","South Africa","Pretoria","https://www.up.ac.za/","QS_OVERALL_2027"],
+  [329,"Aalborg University","Denmark","Aalborg","https://www.en.aau.dk/","QS_OVERALL_2027"],
+  [329,"Jagiellonian University","Poland","Kraków","https://en.uj.edu.pl/","QS_OVERALL_2027"],
+  [329,"Koç University","Türkiye","Istanbul","https://www.ku.edu.tr/en/","QS_OVERALL_2027"],
+  [332,"Nankai University","China","Tianjin","https://en.nankai.edu.cn/","QS_OVERALL_2027"],
+  [333,"Universität Innsbruck","Austria","Innsbruck","https://www.uibk.ac.at/en/","QS_OVERALL_2027"],
+  [334,"Technion – Israel Institute of Technology","Israel","Haifa","https://www.technion.ac.il/en/","QS_OVERALL_2027"],
+  [336,"Southeast University","China","Nanjing","https://www.seu.edu.cn/english/","QS_OVERALL_2027"],
+  [337,"Universidade Nova de Lisboa","Portugal","Lisbon","https://www.unl.pt/en","QS_OVERALL_2027"],
+  [338,"L.N. Gumilyov Eurasian National University","Kazakhstan","Astana","https://www.enu.kz/en/","QS_OVERALL_2027"],
+  [339,"Tufts University","United States","Medford, MA","https://www.tufts.edu/","QS_OVERALL_2027"],
+  [340,"University of Miami","United States","Coral Gables, FL","https://welcome.miami.edu/","QS_OVERALL_2027"],
+  [341,"University of Pisa","Italy","Pisa","https://www.unipi.it/index.php/english","QS_OVERALL_2027"],
+  [342,"South China University of Technology","China","Guangzhou","https://www.scut.edu.cn/en/","QS_OVERALL_2027"],
+  [343,"University of Coimbra","Portugal","Coimbra","https://www.uc.pt/en","QS_OVERALL_2027"],
+  [344,"University of Rome Tor Vergata","Italy","Rome","https://web.uniroma2.it/en","QS_OVERALL_2027"],
+  [345,"Boğaziçi University","Türkiye","Istanbul","https://www.boun.edu.tr/en","QS_OVERALL_2027"],
+  [346,"Mahidol University","Thailand","Bangkok","https://www.mahidol.ac.th/en/","QS_OVERALL_2027"],
+  [347,"Universiti Brunei Darussalam","Brunei","Bandar Seri Begawan","https://www.ubd.edu.bn/","QS_OVERALL_2027"],
+  [348,"Abu Dhabi University","United Arab Emirates","Abu Dhabi","https://www.adu.ac.ae/","QS_OVERALL_2027"],
+  [349,"Beihang University","China","Beijing","https://ev.buaa.edu.cn/","QS_OVERALL_2027"],
+  [322,"University of Delhi","India","Delhi","https://www.du.ac.in/","QS_OVERALL_2027"],
+  [335,"Indian Institute of Technology Roorkee","India","Roorkee","https://www.iitr.ac.in/","QS_OVERALL_2027"],
+  [350,"Indian Institute of Technology Guwahati","India","Guwahati","https://www.iitg.ac.in/","QS_OVERALL_2027"],
+].map(r => ({rank:r[0], name:r[1], country:r[2], city:r[3], website:r[4]||null, rankSystem:r[5]||"CS_IS_2025", id: slugify(r[1])}));
 
 function slugify(s){
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"") // strip accents: è→e, ó→o, á→a...
     .toLowerCase().replace(/\(.*?\)/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
 }
 
-// India intentionally excluded from the discovery database per product rule (§17/§55).
+// (Policy update: India is now included in the discovery database — the earlier §17/§55 exclusion no longer applies.)
 
 const COUNTRIES = [...new Set(SEED_UNIVERSITIES.map(u=>u.country))].sort();
 
@@ -1265,7 +1501,7 @@ function renderFilters(){
   return `
     <div class="panel">
       <h3>1 · Country</h3>
-      <label>Country (India excluded from discovery, per spec §17/§55)</label>
+      <label>Country</label>
       <select id="countrySelect">
         <option value="All" ${state.filters.country==='All'?'selected':''}>All countries</option>
         ${COUNTRIES.map(c=>`<option value="${c}" ${state.filters.country===c?'selected':''}>${c}</option>`).join("")}
@@ -1356,14 +1592,15 @@ function renderUniversityList(){
     <div class="results-head">
       <h2>Universities · Rank ${min}–${max} ${state.filters.country!=='All' ? '· '+state.filters.country : ''}</h2>
       <div class="count">${rows.length} rank slot${rows.length!==1?'s':''} in range — ${verifiedCount} verified record${verifiedCount!==1?'s':''}${state.filters.country==='All' ? ', ' + (rows.length-verifiedCount) + ' pending ingestion' : ''}</div>
+      ${max>100 ? `<p class="note" style="margin-top:6px">Ranks 1–100 use the QS CS &amp; Information Systems subject ranking (2025). Ranks 102+ use the QS Overall/General World Ranking (2027) instead, since a verified subject-rank list beyond 100 isn't available yet — the two are not comparable. Each row below is labeled.</p>` : ''}
     </div>
     <table class="uni-table">
-      <thead><tr><th style="width:60px">Rank</th><th>University</th><th style="width:110px">Country</th><th style="width:130px">Source</th></tr></thead>
+      <thead><tr><th style="width:60px">Rank</th><th>University</th><th style="width:110px">Country</th><th style="width:150px">Source</th></tr></thead>
       <tbody>
         ${pageRows.map(u => u.pending ? `
           <tr class="pending"><td class="rank-num">#${u.rank}</td><td colspan="3">Not yet verified — pending data ingestion for this rank slot</td></tr>
         ` : `
-          <tr class="real" data-id="${u.id}"><td class="rank-num">#${u.rank}</td>
+          <tr class="real" data-id="${u.id}"><td class="rank-num">#${u.rank}<br><small style="font-weight:400;opacity:.65">${RANK_SYSTEM_LABELS[u.rankSystem]?.short || ''}</small></td>
             <td class="uni-name">${u.name} ${u.website ? `<a href="${u.website}" target="_blank" rel="noopener" class="site-link" onclick="event.stopPropagation()" title="Open official university website">🔗</a>` : ''}<small>${u.city}</small></td>
             <td>${u.country}</td>
             <td>${badge("VERIFIED")}</td>
@@ -1374,7 +1611,7 @@ function renderUniversityList(){
     <div class="pager">
       ${Array.from({length: totalPages}, (_,i)=>i+1).map(p=>`<button class="${p===state.page?'on':''}" data-page="${p}">${p}</button>`).join("")}
     </div>
-    <p class="note" style="margin-top:14px">Ranking source: <a href="${RANKING_SOURCE.source_url}" target="_blank">${RANKING_SOURCE.source_name}</a> · ${RANKING_SOURCE.subject} · ${RANKING_SOURCE.year}. India is excluded from this discovery database by design.</p>
+    <p class="note" style="margin-top:14px">Ranking source: <a href="${RANKING_SOURCE.source_url}" target="_blank">${RANKING_SOURCE.source_name}</a> · ${RANKING_SOURCE.subject} · ${RANKING_SOURCE.year}.</p>
   `;
 }
 
@@ -1437,7 +1674,7 @@ function renderUniversityDetail(){
     <div class="uni-header">
       <div>
         <h2>${u.name}</h2>
-        <div class="meta">${u.city}, ${u.country} · QS CS & Information Systems rank #${u.rank} (2025)</div>
+        <div class="meta">${u.city}, ${u.country} · ${RANK_SYSTEM_LABELS[u.rankSystem]?.short || 'QS'} rank #${u.rank}</div>
         ${u.website ? `<div style="margin-top:6px"><a href="${u.website}" target="_blank" rel="noopener">Visit official university website ↗</a></div>` : ''}
       </div>
       <div>${badge("VERIFIED")}</div>
@@ -1459,7 +1696,7 @@ function renderUniversityDetail(){
         <div class="panel">
           <h3>Global Rankings</h3>
           <table class="uni-table"><thead><tr><th>System</th><th>Year</th><th>Subject</th><th>Rank</th><th>Source</th></tr></thead>
-          <tbody><tr><td>QS World University Rankings by Subject</td><td>2025</td><td>Computer Science and Information Systems</td><td class="rank-num">#${u.rank}</td><td>${badge("VERIFIED")}</td></tr></tbody></table>
+          <tbody><tr><td>${u.rankSystem==="QS_OVERALL_2027" ? "QS World University Rankings" : "QS World University Rankings by Subject"}</td><td>${u.rankSystem==="QS_OVERALL_2027" ? "2027" : "2025"}</td><td>${u.rankSystem==="QS_OVERALL_2027" ? "Overall / General Ranking (not subject-specific)" : "Computer Science and Information Systems"}</td><td class="rank-num">#${u.rank}</td><td>${badge("VERIFIED")}</td></tr></tbody></table>
           <p class="note">AI/ML has no dedicated QS subject ranking — "Computer Science and Information Systems" is shown as the closest mapped subject category. This mapping is explicit, not implied.</p>
         </div>
       ` : ""}
@@ -1598,7 +1835,7 @@ const SCHOLARSHIP_CATEGORIES = [
   "Fully Funded", "Fully Funded — Tuition + Living", "Tuition + Stipend",
   "Tuition Waiver", "Partial Funding", "Research Funding", "Exchange Funding"
 ];
-const SCHOLARSHIP_DEGREE_LEVELS = ["Bachelor's / Undergraduate", "Master's", "PhD / Doctoral", "Multiple Degree Levels"];
+const SCHOLARSHIP_DEGREE_LEVELS = ["Bachelor's / Undergraduate", "Master's", "Second Master's", "PhD / Doctoral", "Multiple Degree Levels"];
 
 const SCHOLARSHIPS = [
   { name:"MEXT Scholarship", country:"Japan", region:"Asia", provider:"Ministry of Education, Culture, Sports, Science and Technology (Japan)",
